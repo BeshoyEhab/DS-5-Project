@@ -6,6 +6,9 @@
 #include <QRegularExpression>
 #include <QStyle>
 #include <QSizePolicy>
+#include <QPropertyAnimation>
+#include <QEasingCurve>
+#include <QGraphicsOpacityEffect>
 
 AutoCompleteApp::AutoCompleteApp(QWidget *parent)
     : QMainWindow(parent)
@@ -13,38 +16,40 @@ AutoCompleteApp::AutoCompleteApp(QWidget *parent)
 {
     setStyleSheet(R"(
         QMainWindow {
-            background-color: #1e1e1e;
+            background-color: #0d1117;
         }
         QTextEdit {
             margin: 0;
-            padding: 15px;
+            padding: 8px 15px;
             font-size: 18px;
             border: none;
             border-radius: 15px;
-            min-height: 60px;
+            min-height: 36px;
             color: #ffffff;
             background-color: #2d2d2d;
         }
         QTextEdit[placeholder="true"] {
-            color: #666666;
+            color: #484f58;
         }
         QPushButton {
-            background-color: transparent;
+            background-color: #21262d;
             color: rgba(255, 255, 255, 0.9);
-            padding: 8px 16px;
-            border: 1px solid transparent;
-            font-size: 18px;
+            padding: 4px 12px;
+            border: 1px solid #30363d;
+            font-size: 14px;
             margin: 0;
-            border-radius: 8px;
+            border-radius: 6px;
+            height: 24px;
+            line-height: 24px;
         }
         QPushButton:hover {
-            background-color: #4b89bf;
+            background-color: #2f81f7;
             color: white;
             border: 1px solid #ffffff;
         }
         QLabel#separator {
-            color: rgba(255, 255, 255, 0.2);
-            font-size: 18px;
+            color: #30363d;
+            font-size: 14px;
             margin: 0;
             padding: 0 4px;
         }
@@ -56,10 +61,9 @@ AutoCompleteApp::AutoCompleteApp(QWidget *parent)
         QWidget#suggestionContainer {
             background-color: #3d3d3d;
             border-radius: 12px;
-            margin-bottom: -15px;
-            margin-left: 40px;
-            margin-right: 40px;
-            padding: 8px 12px;
+            margin-left: 100px;
+            margin-right: 100px;
+            padding: 4px 12px;
         }
         QWidget#inputContainer {
             margin: 0;
@@ -101,10 +105,22 @@ void AutoCompleteApp::setupUI()
     contentLayout->setContentsMargins(40, 0, 40, 0);
     contentLayout->setSpacing(0);
 
+    // Create a container for suggestions that's always present
+    QWidget *suggestionsWrapper = new QWidget();
+    QVBoxLayout *suggestionsWrapperLayout = new QVBoxLayout(suggestionsWrapper);
+    suggestionsWrapperLayout->setContentsMargins(0, 0, 0, 0);
+    suggestionsWrapperLayout->setSpacing(0);
+
+    // Input Field
+    inputField = new InputField();
+    inputField->setObjectName("inputField");
+    inputField->setPlaceholderText("Start typing Here");
+
     // Suggestions Container with animation setup
     suggestionContainer = new QWidget();
     suggestionContainer->setObjectName("suggestionContainer");
-    suggestionContainer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
+    suggestionContainer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    suggestionContainer->setFixedHeight(36);
 
     // Setup opacity effect
     opacityEffect = new QGraphicsOpacityEffect(suggestionContainer);
@@ -119,19 +135,22 @@ void AutoCompleteApp::setupUI()
     currentAnimGroup = nullptr;
 
     QHBoxLayout *suggestionsLayout = new QHBoxLayout(suggestionContainer);
-    suggestionsLayout->setContentsMargins(0, 0, 0, 0);
-    suggestionsLayout->setSpacing(2);
+    suggestionsLayout->setContentsMargins(4, 2, 4, 2);
+    suggestionsLayout->setSpacing(4);
+    suggestionsLayout->setAlignment(Qt::AlignCenter);
 
-    contentLayout->addWidget(suggestionContainer);
+    // Add suggestion container to wrapper
+    suggestionsWrapperLayout->addWidget(suggestionContainer);
+
+    // Add input field to wrapper
+    suggestionsWrapperLayout->addWidget(inputField);
+    suggestionsWrapperLayout->setSpacing(0);
 
     // Hide suggestions initially
     suggestionContainer->hide();
 
-    // Input Field
-    inputField = new InputField();
-    inputField->setObjectName("inputField");
-    inputField->setPlaceholderText("Start typing Here");
-    contentLayout->addWidget(inputField);
+    // Add wrapper to content layout
+    contentLayout->addWidget(suggestionsWrapper);
 
     // Center the content widget horizontally and vertically
     QHBoxLayout *horizontalWrapper = new QHBoxLayout();
@@ -153,8 +172,8 @@ void AutoCompleteApp::setupUI()
 
 void AutoCompleteApp::setupAutocomplete()
 {
-    wordDatabase["alex"] = QStringList() << "Alex" << "Alexa" << "Alexis" << "Alexander";
-    wordDatabase["arg"] = QStringList() << "Argon" << "Argo" << "Argue" << "Argument";
+    wordDatabase["alex"] = QStringList() << "Alex" << "Alexa" << "Alexis" << "Alexander" << "Alexandra";
+    wordDatabase["arg"] = QStringList() << "Argon" << "Argo" << "Argue" << "Argument" << "Argueable";
 }
 
 void AutoCompleteApp::updateInputHeight()
@@ -198,8 +217,8 @@ void AutoCompleteApp::updateSelection()
     for(int i = 0; i < suggestionButtons.size(); i++) {
         bool selected = (i == selectedIndex);
         suggestionButtons[i]->setStyleSheet(selected ?
-                                                "background-color: #4b89bf; color: #ffffff; border-radius: 8px;" :
-                                                "background-color: transparent; color: rgba(255, 255, 255, 0.9);");
+                                                "background-color: #2f81f7; color: #ffffff; border-radius: 8px;" :
+                                                "background-color: #21262d; color: rgba(255, 255, 255, 0.9); border-radius: 8px;");
     }
 }
 
@@ -220,24 +239,14 @@ void AutoCompleteApp::showSuggestions()
 {
     if (!suggestionContainer->isVisible()) {
         suggestionContainer->show();
+        opacityEffect->setOpacity(0.0);
 
-        // Reset position for slide animation
-        QPoint startPos = suggestionContainer->pos();
-        QPoint endPos = startPos;
-        startPos.setY(startPos.y() + 20); // Start 20px below
-
-        // Setup and start animations
-        slideAnimation->setStartValue(startPos);
-        slideAnimation->setEndValue(endPos);
-        slideAnimation->setEasingCurve(QEasingCurve::OutCubic);
-
-        QPropertyAnimation *fadeAnimation = new QPropertyAnimation(opacityEffect, "opacity");
-        fadeAnimation->setDuration(200);
+        QPropertyAnimation *fadeAnimation = new QPropertyAnimation(opacityEffect, "opacity", this);
+        fadeAnimation->setDuration(150);
         fadeAnimation->setStartValue(0.0);
         fadeAnimation->setEndValue(1.0);
         fadeAnimation->setEasingCurve(QEasingCurve::OutCubic);
-
-        slideAnimation->start();
+        connect(fadeAnimation, &QPropertyAnimation::finished, fadeAnimation, &QPropertyAnimation::deleteLater);
         fadeAnimation->start();
     }
 }
@@ -245,38 +254,18 @@ void AutoCompleteApp::showSuggestions()
 void AutoCompleteApp::hideSuggestions()
 {
     if (suggestionContainer->isVisible()) {
-        // Create new animations for hiding
-        QPropertyAnimation *hideSlide = new QPropertyAnimation(suggestionContainer, "pos");
-        QPropertyAnimation *hideFade = new QPropertyAnimation(opacityEffect, "opacity");
-
-        // Setup slide animation
-        QPoint startPos = suggestionContainer->pos();
-        QPoint endPos = startPos;
-        endPos.setY(startPos.y() + 20); // Slide 20px down
-
-        hideSlide->setStartValue(startPos);
-        hideSlide->setEndValue(endPos);
-        hideSlide->setEasingCurve(QEasingCurve::InCubic);
-        hideSlide->setDuration(150);
-
-        // Setup fade animation
-        hideFade->setDuration(150);
-        hideFade->setStartValue(1.0);
-        hideFade->setEndValue(0.0);
-        hideFade->setEasingCurve(QEasingCurve::InCubic);
-
-        // Create parallel animation group
-        QParallelAnimationGroup *hideGroup = new QParallelAnimationGroup(this);
-        hideGroup->addAnimation(hideSlide);
-        hideGroup->addAnimation(hideFade);
-
-        // Hide container and cleanup when animations finish
-        connect(hideGroup, &QParallelAnimationGroup::finished, [this, hideGroup]() {
+        QPropertyAnimation *fadeAnimation = new QPropertyAnimation(opacityEffect, "opacity", this);
+        fadeAnimation->setDuration(100);
+        fadeAnimation->setStartValue(opacityEffect->opacity());
+        fadeAnimation->setEndValue(0.0);
+        fadeAnimation->setEasingCurve(QEasingCurve::InCubic);
+        
+        connect(fadeAnimation, &QPropertyAnimation::finished, [this, fadeAnimation]() {
             suggestionContainer->hide();
-            hideGroup->deleteLater();
+            fadeAnimation->deleteLater();
         });
-
-        hideGroup->start();
+        
+        fadeAnimation->start();
     }
 }
 
@@ -319,13 +308,13 @@ void AutoCompleteApp::updateSuggestions()
 
             QPushButton *btn = new QPushButton(displayText);
             btn->setCursor(Qt::PointingHandCursor);
-            btn->setFixedHeight(36);
+            btn->setFixedHeight(24);
 
             // Calculate the width needed for the text
             QFontMetrics fm(btn->font());
             int textWidth = fm.horizontalAdvance(displayText);
-            // Add padding (16px on each side from the stylesheet + 5px extra on each side)
-            int totalWidth = textWidth + 42;  // 16px + 5px padding on each side
+            // Add padding (12px on each side from the stylesheet)
+            int totalWidth = textWidth + 24;
             btn->setFixedWidth(totalWidth);
 
             connect(btn, &QPushButton::clicked, [this, displayText]() {
@@ -340,7 +329,7 @@ void AutoCompleteApp::updateSuggestions()
                 QLabel *separator = new QLabel("|");
                 separator->setObjectName("separator");
                 separator->setAlignment(Qt::AlignCenter);
-                separator->setFixedWidth(10); // Fixed width for separator
+                separator->setFixedWidth(8); // Reduced separator width
                 layout->addWidget(separator);
             }
         }
