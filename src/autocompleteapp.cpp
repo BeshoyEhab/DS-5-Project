@@ -17,7 +17,7 @@ AutoCompleteApp::AutoCompleteApp(QWidget *parent)
 {
     setStyleSheet(R"(
         QMainWindow {
-            background-color: #0d1117;
+            background-color: #222222;
         }
         QTextEdit {
             margin: 0;
@@ -93,7 +93,7 @@ AutoCompleteApp::AutoCompleteApp(QWidget *parent)
 
         }
         QMessageBox QPushButton {
-            background-color: #262626;
+            background-color: #222222;
             color: #A6A6A6;
             border: none;
             border-radius: 5px;
