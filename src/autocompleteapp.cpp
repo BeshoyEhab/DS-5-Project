@@ -18,6 +18,8 @@ AutoCompleteApp::AutoCompleteApp(QWidget *parent)
     setStyleSheet(R"(
         QMainWindow {
             background-color: #222222;
+            min-width: 530px;
+            min-height: 300px;
         }
         QTextEdit {
             margin: 0;
@@ -49,6 +51,7 @@ AutoCompleteApp::AutoCompleteApp(QWidget *parent)
             margin: 3;
             border-radius: 10px;
             height: 24px;
+
         }
         QPushButton:hover {
             background-color: #3F3F3F;
@@ -75,10 +78,11 @@ AutoCompleteApp::AutoCompleteApp(QWidget *parent)
             border-top-right-radius: 15px;
             border-bottom-left-radius: 0px;
             border-bottom-right-radius: 0px;
-            margin-left: 100px;
-            margin-right: 100px;
+            margin-left: auto;
+            margin-right: auto;
             padding: 4px 12px;
             min-height: 36px;
+            min-width:350px
         }
         QWidget#inputContainer {
             margin: 0;
