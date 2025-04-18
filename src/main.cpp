@@ -1,5 +1,5 @@
 #include <QApplication>
-#include "autocompleteapp.h"
+#include "../headers/autocompleteapp.h"
 
 int main(int argc, char *argv[])
 {

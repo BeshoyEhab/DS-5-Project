@@ -10,17 +10,20 @@ set(CMAKE_AUTOUIC ON)
 
 find_package(Qt6 COMPONENTS Core Gui Widgets REQUIRED)
 
+# Add include directories
+include_directories(${CMAKE_SOURCE_DIR}/headers)
+
 set(SOURCES
-    main.cpp
-    autocompleteapp.cpp
-    inputfield.cpp
-    hoverablebutton.cpp
+    src/main.cpp
+    src/autocompleteapp.cpp
+    src/inputfield.cpp
+    src/hoverablebutton.cpp
 )
 
 set(HEADERS
-    autocompleteapp.h
-    inputfield.h
-    hoverablebutton.h
+    headers/autocompleteapp.h
+    headers/inputfield.h
+    headers/hoverablebutton.h
 )
 
 add_executable(FastWriterPro ${SOURCES} ${HEADERS})

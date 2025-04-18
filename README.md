@@ -13,13 +13,15 @@ A modern Qt-based application that provides autocomplete functionality with a cu
 
 ```
 .
-├── autocompleteapp.cpp    # Main application implementation
-├── autocompleteapp.h      # Main application header
-├── hoverablebutton.cpp    # Custom button implementation
-├── hoverablebutton.h      # Custom button header
-├── inputfield.cpp         # Custom input field implementation
-├── inputfield.h           # Custom input field header
-├── main.cpp               # Application entry point
+├── src/                    # Source files
+│   ├── main.cpp           # Application entry point
+│   ├── autocompleteapp.cpp # Main application implementation
+│   ├── inputfield.cpp     # Custom input field implementation
+│   └── hoverablebutton.cpp # Custom button implementation
+├── headers/               # Header files
+│   ├── autocompleteapp.h  # Main application header
+│   ├── inputfield.h       # Custom input field header
+│   └── hoverablebutton.h  # Custom button header
 └── CMakeLists.txt         # CMake build configuration
 ```
 
@@ -51,7 +53,7 @@ make
 
 After building, you can run the application from the build directory:
 ```bash
-./untitled3
+./FastWriterPro
 ```
 
 ## License

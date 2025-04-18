@@ -1,5 +1,5 @@
-#include "autocompleteapp.h"
-#include "inputfield.h"
+#include "../headers/autocompleteapp.h"
+#include "../headers/inputfield.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
