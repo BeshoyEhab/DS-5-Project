@@ -18,6 +18,9 @@ class AutoCompleteApp : public QMainWindow {
 public:
     explicit AutoCompleteApp(QWidget *parent = nullptr);
 
+signals:
+    void suggestionsVisibilityChanged(bool visible);
+
 protected:
     void keyPressEvent(QKeyEvent *event) override;
 

@@ -48,7 +48,7 @@ AutoCompleteApp::AutoCompleteApp(QWidget *parent)
             border: 1px solid #ffffff;
         }
         QLabel#separator {
-            color: #30363d;
+            color:rgb(105, 106, 107);
             font-size: 14px;
             margin: 0;
             padding: 0 4px;
@@ -60,10 +60,14 @@ AutoCompleteApp::AutoCompleteApp(QWidget *parent)
         }
         QWidget#suggestionContainer {
             background-color: #3d3d3d;
-            border-radius: 12px;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            border-bottom-left-radius: 0px;
+            border-bottom-right-radius: 0px;
             margin-left: 100px;
             margin-right: 100px;
             padding: 4px 12px;
+            min-height: 36px;
         }
         QWidget#inputContainer {
             margin: 0;
@@ -89,14 +93,8 @@ void AutoCompleteApp::setupUI()
     mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->setSpacing(0);
 
-    // Add stretch before content to push it down
-    mainLayout->addStretch();
-
-    // Title Label with proper spacing
-    titleLabel = new QLabel("let me help you to write fast");
-    titleLabel->setAlignment(Qt::AlignCenter);
-    mainLayout->addWidget(titleLabel, 0, Qt::AlignHCenter);
-    mainLayout->addSpacing(20);
+    // Add stretch to push content to vertical center
+    mainLayout->addStretch(1);
 
     // Main content container (input + suggestions)
     QWidget *contentWidget = new QWidget();
@@ -105,22 +103,35 @@ void AutoCompleteApp::setupUI()
     contentLayout->setContentsMargins(40, 0, 40, 0);
     contentLayout->setSpacing(0);
 
+    // Title Label
+    titleLabel = new QLabel("let me help you to write fast");
+    titleLabel->setAlignment(Qt::AlignCenter);
+    contentLayout->addWidget(titleLabel);
+    contentLayout->addSpacing(20);
+
     // Create a container for suggestions that's always present
     QWidget *suggestionsWrapper = new QWidget();
     QVBoxLayout *suggestionsWrapperLayout = new QVBoxLayout(suggestionsWrapper);
     suggestionsWrapperLayout->setContentsMargins(0, 0, 0, 0);
     suggestionsWrapperLayout->setSpacing(0);
 
-    // Input Field
-    inputField = new InputField();
-    inputField->setObjectName("inputField");
-    inputField->setPlaceholderText("Start typing Here");
+    // Create a fixed-size spacer widget to reserve space for suggestions
+    QWidget *suggestionsSpacer = new QWidget();
+    suggestionsSpacer->setFixedHeight(36); // Same height as suggestion container
+    suggestionsSpacer->setVisible(false);
+    suggestionsWrapperLayout->addWidget(suggestionsSpacer);
 
     // Suggestions Container with animation setup
     suggestionContainer = new QWidget();
     suggestionContainer->setObjectName("suggestionContainer");
-    suggestionContainer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    suggestionContainer->setFixedHeight(36);
+    suggestionContainer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
+
+    QHBoxLayout *suggestionsLayout = new QHBoxLayout(suggestionContainer);
+    suggestionsLayout->setContentsMargins(4, 4, 4, 4);
+    suggestionsLayout->setSpacing(4);
+    suggestionsLayout->setAlignment(Qt::AlignVCenter);
+
+    contentLayout->addWidget(suggestionContainer);
 
     // Setup opacity effect
     opacityEffect = new QGraphicsOpacityEffect(suggestionContainer);
@@ -134,25 +145,22 @@ void AutoCompleteApp::setupUI()
     // Initialize animation group pointer
     currentAnimGroup = nullptr;
 
-    QHBoxLayout *suggestionsLayout = new QHBoxLayout(suggestionContainer);
-    suggestionsLayout->setContentsMargins(4, 2, 4, 2);
-    suggestionsLayout->setSpacing(4);
-    suggestionsLayout->setAlignment(Qt::AlignCenter);
-
     // Add suggestion container to wrapper
     suggestionsWrapperLayout->addWidget(suggestionContainer);
 
-    // Add input field to wrapper
-    suggestionsWrapperLayout->addWidget(inputField);
-    suggestionsWrapperLayout->setSpacing(0);
+    // Input Field
+    inputField = new InputField();
+    inputField->setObjectName("inputField");
+    inputField->setPlaceholderText("Start typing Here");
+
+    // Create the main content stack in correct order
+    contentLayout->addWidget(suggestionsWrapper);
+    contentLayout->addWidget(inputField);
 
     // Hide suggestions initially
     suggestionContainer->hide();
 
-    // Add wrapper to content layout
-    contentLayout->addWidget(suggestionsWrapper);
-
-    // Center the content widget horizontally and vertically
+    // Center the content widget horizontally
     QHBoxLayout *horizontalWrapper = new QHBoxLayout();
     horizontalWrapper->addStretch();
     horizontalWrapper->addWidget(contentWidget, 8);
@@ -160,8 +168,12 @@ void AutoCompleteApp::setupUI()
 
     mainLayout->addLayout(horizontalWrapper);
 
-    // Add stretch after content to push it up
-    mainLayout->addStretch();
+    // Add stretch after content for vertical centering
+    mainLayout->addStretch(1);
+
+    // Update showSuggestions and hideSuggestions methods to handle the spacer
+    connect(this, &AutoCompleteApp::suggestionsVisibilityChanged, 
+            suggestionsSpacer, &QWidget::setVisible);
 
     setCentralWidget(centralWidget);
     connect(inputField, &InputField::navigationKeyPressed,
@@ -239,6 +251,7 @@ void AutoCompleteApp::showSuggestions()
 {
     if (!suggestionContainer->isVisible()) {
         suggestionContainer->show();
+        emit suggestionsVisibilityChanged(true);
         opacityEffect->setOpacity(0.0);
 
         QPropertyAnimation *fadeAnimation = new QPropertyAnimation(opacityEffect, "opacity", this);
@@ -262,6 +275,7 @@ void AutoCompleteApp::hideSuggestions()
         
         connect(fadeAnimation, &QPropertyAnimation::finished, [this, fadeAnimation]() {
             suggestionContainer->hide();
+            emit suggestionsVisibilityChanged(false);
             fadeAnimation->deleteLater();
         });
         
@@ -308,14 +322,15 @@ void AutoCompleteApp::updateSuggestions()
 
             QPushButton *btn = new QPushButton(displayText);
             btn->setCursor(Qt::PointingHandCursor);
-            btn->setFixedHeight(24);
+            btn->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+            btn->setMinimumHeight(26);
 
             // Calculate the width needed for the text
             QFontMetrics fm(btn->font());
             int textWidth = fm.horizontalAdvance(displayText);
-            // Add padding (12px on each side from the stylesheet)
-            int totalWidth = textWidth + 24;
-            btn->setFixedWidth(totalWidth);
+            // Add padding (16px on each side from the stylesheet + 5px extra on each side)
+            int totalWidth = textWidth + 42;  // 16px + 5px padding on each side
+            btn->setMinimumWidth(totalWidth);
 
             connect(btn, &QPushButton::clicked, [this, displayText]() {
                 replaceCurrentWord(displayText);
