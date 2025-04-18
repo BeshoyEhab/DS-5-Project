@@ -25,7 +25,6 @@ AutoCompleteApp::AutoCompleteApp(QWidget *parent)
             font-size: 18px;
             border: none;
             border-radius: 20px;
-            min-height: 36px;
             color: #ffffff;
             background-color: #2d2d2d;
         }
@@ -41,7 +40,6 @@ AutoCompleteApp::AutoCompleteApp(QWidget *parent)
             margin: 0;
             border-radius: 10px;
             height: 24px;
-            line-height: 24px;
         }
         QPushButton:hover {
             background-color: #2f81f7;
