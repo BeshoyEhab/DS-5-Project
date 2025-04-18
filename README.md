@@ -13,16 +13,17 @@ A modern Qt-based application that provides autocomplete functionality with a cu
 
 ```
 .
-├── src/                    # Source files
-│   ├── main.cpp           # Application entry point
+├── main.cpp               # Application entry point
+├── src/                   # Source files
 │   ├── autocompleteapp.cpp # Main application implementation
 │   ├── inputfield.cpp     # Custom input field implementation
 │   └── hoverablebutton.cpp # Custom button implementation
-├── headers/               # Header files
-│   ├── autocompleteapp.h  # Main application header
-│   ├── inputfield.h       # Custom input field header
-│   └── hoverablebutton.h  # Custom button header
-└── CMakeLists.txt         # CMake build configuration
+├── headers/              # Header files
+│   ├── autocompleteapp.h # Main application header
+│   ├── inputfield.h      # Custom input field header
+│   └── hoverablebutton.h # Custom button header
+├── CMakeLists.txt        # CMake build configuration
+└── README.md             # Project documentation
 ```
 
 ## Prerequisites

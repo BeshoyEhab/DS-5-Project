@@ -9,6 +9,7 @@
 #include <QPropertyAnimation>
 #include <QEasingCurve>
 #include <QGraphicsOpacityEffect>
+#include <QMessageBox>
 
 AutoCompleteApp::AutoCompleteApp(QWidget *parent)
     : QMainWindow(parent)
@@ -23,7 +24,7 @@ AutoCompleteApp::AutoCompleteApp(QWidget *parent)
             padding: 8px 15px;
             font-size: 18px;
             border: none;
-            border-radius: 15px;
+            border-radius: 20px;
             min-height: 36px;
             color: #ffffff;
             background-color: #2d2d2d;
@@ -38,7 +39,7 @@ AutoCompleteApp::AutoCompleteApp(QWidget *parent)
             border: 1px solid #30363d;
             font-size: 14px;
             margin: 0;
-            border-radius: 6px;
+            border-radius: 10px;
             height: 24px;
             line-height: 24px;
         }
@@ -47,12 +48,6 @@ AutoCompleteApp::AutoCompleteApp(QWidget *parent)
             color: white;
             border: 1px solid #ffffff;
         }
-        QLabel#separator {
-            color:rgb(105, 106, 107);
-            font-size: 14px;
-            margin: 0;
-            padding: 0 4px;
-        }
         QLabel {
             color: #ffffff;
             font-size: 32px;
@@ -60,8 +55,8 @@ AutoCompleteApp::AutoCompleteApp(QWidget *parent)
         }
         QWidget#suggestionContainer {
             background-color: #3d3d3d;
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
             border-bottom-left-radius: 0px;
             border-bottom-right-radius: 0px;
             margin-left: 100px;
@@ -229,8 +224,8 @@ void AutoCompleteApp::updateSelection()
     for(int i = 0; i < suggestionButtons.size(); i++) {
         bool selected = (i == selectedIndex);
         suggestionButtons[i]->setStyleSheet(selected ?
-                                                "background-color: #2f81f7; color: #ffffff; border-radius: 8px;" :
-                                                "background-color: #21262d; color: rgba(255, 255, 255, 0.9); border-radius: 8px;");
+                                                "background-color: #2f81f7; color: #ffffff; border-radius: 15px;" :
+                                                "background-color: #21262d; color: rgba(255, 255, 255, 0.9); border-radius: 15px;");
     }
 }
 
@@ -338,15 +333,6 @@ void AutoCompleteApp::updateSuggestions()
 
             layout->addWidget(btn);
             suggestionButtons.append(btn);
-
-            // Add separator if not the last item
-            if(i < suggestions.size() - 1) {
-                QLabel *separator = new QLabel("|");
-                separator->setObjectName("separator");
-                separator->setAlignment(Qt::AlignCenter);
-                separator->setFixedWidth(8); // Reduced separator width
-                layout->addWidget(separator);
-            }
         }
 
         layout->addStretch();
@@ -393,4 +379,27 @@ void AutoCompleteApp::handleNavigationKeys(QKeyEvent *event)
     default:
         event->ignore();
     }
-} 
+}
+
+void AutoCompleteApp::closeEvent(QCloseEvent *event) {
+    // Create a message box with custom buttons
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle("Exit Confirmation");
+    msgBox.setText("You have unsaved changes. What would you like to do?");
+
+    // Add custom buttons
+    QPushButton *saveButton = msgBox.addButton("Save", QMessageBox::AcceptRole);
+    QPushButton *discardButton = msgBox.addButton("Discard", QMessageBox::DestructiveRole);
+    QPushButton *cancelButton = msgBox.addButton("Cancel", QMessageBox::RejectRole);
+
+    msgBox.exec();  // Show the dialog
+
+    // Determine which button was clicked
+    if (msgBox.clickedButton() == saveButton) {    // Call your save function
+        event->accept();  // Close the window
+    } else if (msgBox.clickedButton() == discardButton) {
+        event->accept();  // Close without saving
+    } else if (msgBox.clickedButton() == cancelButton) {
+        event->ignore();   // Cancel closing
+    }
+}

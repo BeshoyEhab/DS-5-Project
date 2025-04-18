@@ -14,7 +14,7 @@ find_package(Qt6 COMPONENTS Core Gui Widgets REQUIRED)
 include_directories(${CMAKE_SOURCE_DIR}/headers)
 
 set(SOURCES
-    src/main.cpp
+    main.cpp
     src/autocompleteapp.cpp
     src/inputfield.cpp
     src/hoverablebutton.cpp
