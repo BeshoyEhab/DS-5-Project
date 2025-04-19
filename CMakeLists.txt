@@ -26,7 +26,8 @@ set(HEADERS
     headers/hoverablebutton.h
 )
 
-add_executable(FastWriterPro ${SOURCES} ${HEADERS})
+add_executable(FastWriterPro ${SOURCES} ${HEADERS}
+    assets/words_dictionary.json)
 
 target_link_libraries(FastWriterPro PRIVATE
     Qt6::Core

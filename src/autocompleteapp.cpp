@@ -17,34 +17,54 @@ AutoCompleteApp::AutoCompleteApp(QWidget *parent)
 {
     setStyleSheet(R"(
         QMainWindow {
-            background-color: #0d1117;
+            background-color: #222222;
+            min-width: 530px;
+            min-height: 300px;
         }
         QTextEdit {
             margin: 0;
             padding: 8px 15px;
             font-size: 18px;
-            border: none;
-            border-radius: 20px;
+            border: 2px solid #5f5f5f;
+            border-radius: 22px;
+            color: #dcdcdc;
+            background-color: #515151;
+        }
+        QTextEdit:focus {
+            margin: 0;
+            padding: 8px 15px;
+            font-size: 18px;
+            border: 2px solid #D2D2D2;
+            border-radius: 22px;
             color: #ffffff;
-            background-color: #2d2d2d;
+            background-color: #515151;
         }
         QTextEdit[placeholder="true"] {
             color: #484f58;
         }
         QPushButton {
-            background-color: #21262d;
-            color: rgba(255, 255, 255, 0.9);
-            padding: 4px 12px;
+            background-color: #262626;
+            color: #9B9B9B;
+            padding: 8px 15px;
             border: 1px solid #30363d;
-            font-size: 14px;
-            margin: 0;
+            font-size: 17px;
+            margin: 3;
             border-radius: 10px;
             height: 24px;
         }
         QPushButton:hover {
-            background-color: #2f81f7;
-            color: white;
-            border: 1px solid #ffffff;
+            background-color: #3F3F3F;
+            color: #D6D6D6;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 2px;
+            font-size: 14px;
+            margin: 3px;
+            min-width: 80px;
+        }
+        QPushButton[selected="true"] {
+            background-color: #3F3F3F;
+            border: 2px solid #949494;
         }
         QLabel {
             color: #ffffff;
@@ -57,15 +77,41 @@ AutoCompleteApp::AutoCompleteApp(QWidget *parent)
             border-top-right-radius: 15px;
             border-bottom-left-radius: 0px;
             border-bottom-right-radius: 0px;
-            margin-left: 100px;
-            margin-right: 100px;
+            margin-left: auto;
+            margin-right: auto;
             padding: 4px 12px;
             min-height: 36px;
+            min-width:350px
         }
         QWidget#inputContainer {
             margin: 0;
             padding: 0;
         }
+        QMessageBox{
+            background-color: #0d1117;
+        }
+        QMessageBox QLabel {
+            color: #ffffff;
+            font-size: 20px;
+
+        }
+        QMessageBox QPushButton {
+            background-color: #222222;
+            color: #A6A6A6;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            padding: 5px 10px;
+            min-width: 70px;
+        }
+        QMessageBox QPushButton:hover {
+            border-radius: 5px;
+            border: 1px solid #30363d;
+            background-color: #E2E2E2;
+            color: #000000;
+        }
+
+
     )");
 
     setupUI();
@@ -222,8 +268,8 @@ void AutoCompleteApp::updateSelection()
     for(int i = 0; i < suggestionButtons.size(); i++) {
         bool selected = (i == selectedIndex);
         suggestionButtons[i]->setStyleSheet(selected ?
-                                                "background-color: #2f81f7; color: #ffffff; border-radius: 15px;" :
-                                                "background-color: #21262d; color: rgba(255, 255, 255, 0.9); border-radius: 15px;");
+            "background-color: #9d9d9d; color: #ffffff; border-radius: 20px;" :
+            "background-color: #21262d; color: rgba(255, 255, 255, 0.9); border-radius: 20px;");
     }
 }
 
@@ -250,7 +296,7 @@ void AutoCompleteApp::showSuggestions()
         QPropertyAnimation *fadeAnimation = new QPropertyAnimation(opacityEffect, "opacity", this);
         fadeAnimation->setDuration(150);
         fadeAnimation->setStartValue(0.0);
-        fadeAnimation->setEndValue(1.0);
+        fadeAnimation->setEndValue(1.150);
         fadeAnimation->setEasingCurve(QEasingCurve::OutCubic);
         connect(fadeAnimation, &QPropertyAnimation::finished, fadeAnimation, &QPropertyAnimation::deleteLater);
         fadeAnimation->start();
