@@ -11,28 +11,34 @@ DataModel::DataModel() {
 
 }
 
-bool DataModel::readJson(const string &fileName){
-    ifstream file(fileName);
-    if(!file.is_open()){
-        cerr<<fileName<<"failed to open!!"<<endl;
-        return false;
+bool DataModel::readJson(){
+
+    std::ifstream file("DS-5-Project/assets/words.json");
+
+    if (!file.is_open()) {
+        file.open("DS-5-Project/assets/words_dictionary.json");
+        if (!file.is_open()) {
+            std::cerr << "Neither words.json nor words_dictionary.json could be opened!" << std::endl;
+            return false;
+        }
     }
 
     json j;
-    try{
+
+    try {
         file >> j;
-        if(!j.is_object()){
-            cerr<<"Error: Expected JSON File"<<endl;
+        if (!j.is_object()) {
+            std::cerr << "Error: Expected JSON object!" << std::endl;
+            return false;
         }
 
         words.clear();
 
-        for(const auto& [key, value] : j.items()){
-             words[key] = value.get<int>();
+        for (const auto& [key, value] : j.items()) {
+            words[key] = value.get<int>();
         }
-
-    } catch (const json::exception &e){
-        cerr<<"Error Occurred: "<<e.what()<<endl;
+    } catch (const json::exception& e) {
+        std::cerr << "JSON Error: " << e.what() << std::endl;
         return false;
     }
 
@@ -42,8 +48,28 @@ bool DataModel::readJson(const string &fileName){
 int DataModel::getValue(const string &key){
     auto it = words.find(key);
     if(it != words.end()){
-        return it ->second;
+        return it->second;
+    }
+
+    auto tempIt = temp.find(key);
+    if(tempIt != temp.end()){
+        return tempIt->second;
     }
 
     return -1;
 }
+
+void DataModel::deleteWord(string key){
+    words.erase(key);
+}
+
+void DataModel::addWord(std::string key, int frequency){
+    if(words.find(key) != words.end()){
+        std::cout << "Frequency increased" << std::endl;
+        words[key] += frequency;
+    } else {
+        std::cout << "Added temp value" << std::endl;
+        temp[key] += frequency; // Works whether key exists or not
+    }
+}
+

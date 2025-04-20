@@ -9,13 +9,14 @@ class DataModel{
 
 private:
     map<string, int> words;
+    map<string, int> temp;
 
 public:
     DataModel();
-    bool readJson(const string &fileName);
-    int getValue(const string &key);    // used to open the folder the first time you create the folder
-    void addWord(string word);
-    void deleteWord(string word);
+    bool readJson();
+    int getValue(const string &key);
+    void addWord(string key, int frequency = 1);
+    void deleteWord(string key);
 };
 
 #endif
