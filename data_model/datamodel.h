@@ -17,6 +17,7 @@ public:
     int getValue(const string &key);
     void addWord(string key, int frequency = 1);
     void deleteWord(string key);
+    bool saveJson();
 };
 
 #endif
