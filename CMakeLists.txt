@@ -29,7 +29,8 @@ set(HEADERS
 add_executable(FastWriterPro ${SOURCES} ${HEADERS}
     assets/words_dictionary.json
     data_model/datamodel.h data_model/datamodel.cpp
-    assets/json.hpp)
+    assets/json.hpp
+)
 
 target_link_libraries(FastWriterPro PRIVATE
     Qt6::Core

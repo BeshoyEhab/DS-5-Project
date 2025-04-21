@@ -1,49 +1,72 @@
 #include "datamodel.h"
 #include <iostream>
-#include <fstream>
-#include "../assets/json.hpp"
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonParseError>
+#include <QFileInfo>
+#include <QFile>
+#include <QDebug>
+#include <QDir>
+#include <QCoreApplication>
 
 using namespace std;
-using json = nlohmann::json;
 
+DataModel::DataModel(){}
 
-DataModel::DataModel() {
+bool DataModel::readJson() {
+    QString baseDir = QCoreApplication::applicationDirPath();
+    QString assetPath = QDir(baseDir + "/../../assets").absolutePath();
 
-}
+    QStringList fileNames = {
+        assetPath + "/words.json",
+        assetPath + "/words_dictionary.json"
+    };
 
-bool DataModel::readJson(){
-
-    ifstream file("DS-5-Project/assets/words.json");
-
-    if (!file.is_open()) {
-        file.open("DS-5-Project/assets/words_dictionary.json");
-        if (!file.is_open()) {
-            cerr << "Neither words.json nor words_dictionary.json could be opened!" << endl;
-            return false;
+    QFile file;
+    for (const QString& fileName : fileNames) {
+        qDebug() << "Trying to open file:" << fileName;
+        file.setFileName(fileName);
+        if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            qDebug() << "Opened file:" << fileName;
+            break;
         }
     }
 
-    json j;
-
-    try {
-        file >> j;
-        if (!j.is_object()) {
-            cerr << "Error: Expected JSON object!" << endl;
-            return false;
-        }
-
-        words.clear();
-
-        for (const auto& [key, value] : j.items()) {
-            words[key] = value.get<int>();
-        }
-    } catch (const json::exception& e) {
-        cerr << "JSON Error: " << e.what() << endl;
+    if (!file.isOpen()) {
+        qCritical() << "Neither words.json nor words_dictionary.json could be opened!";
         return false;
+    }
+
+    QByteArray jsonData = file.readAll();
+    file.close();
+
+    QJsonParseError parseError;
+    QJsonDocument doc = QJsonDocument::fromJson(jsonData, &parseError);
+
+    if (parseError.error != QJsonParseError::NoError) {
+        qCritical() << "JSON Parse Error:" << parseError.errorString();
+        return false;
+    }
+
+    if (!doc.isObject()) {
+        qCritical() << "Error: Expected JSON object!";
+        return false;
+    }
+
+    words.clear();
+
+    QJsonObject obj = doc.object();
+    for (auto it = obj.begin(); it != obj.end(); ++it) {
+        if (it.value().isDouble()) {
+            words[it.key().toStdString()] = it.value().toInt();
+        } else {
+            qWarning() << "Skipping key" << it.key() << "with non-integer value.";
+        }
     }
 
     return true;
 }
+
 
 int DataModel::getValue(const string &key){
     auto it = words.find(key);
@@ -73,44 +96,43 @@ void DataModel::addWord(string key, int frequency){
     }
 }
 
-bool DataModel::saveJson(){
-    json j;
-
+bool DataModel::saveJson() {
+    QJsonObject jsonObj;
     for (const auto& [key, value] : words) {
-        j[key] = value;
+        jsonObj[QString::fromStdString(key)] = value;
     }
 
-    ifstream checkFile("DS-5-Project/assets/words.json");
+    QJsonDocument jsonDoc(jsonObj);
 
-        if (!checkFile.is_open()) {
-            cout << "File does not exist. Creating new file: DS-5-Project/assets/words.json" << endl;
-
-            // Open the file for writing (will create it if it doesn't exist)
-            ofstream outFile("DS-5-Project/assets/words.json");
-
-            // If file couldn't be opened
-            if (!outFile.is_open()) {
-                cerr << "Error: Could not open file for writing: DS-5-Project/assets/words.json" << endl;
-                return false;
-            }
-
-            // Write the JSON to the file (pretty print with 4 spaces)
-            outFile << j.dump(4);  // 4 for pretty printing with indentations
-            outFile.close();
-        } else {
-            cout << "File exists. Overwriting file: DS-5-Project/assets/words.json" << endl;
-
-            // File exists, just overwrite it with new data
-            ofstream outFile("DS-5-Project/assets/words.json");
-
-            if (!outFile.is_open()) {
-                cerr << "Error: Could not open file for writing: DS-5-Project/assets/words.json" << endl;
-                return false;
-            }
-
-            outFile << j.dump(4);  // Pretty print the JSON
-            outFile.close();
+    QString baseDir = QCoreApplication::applicationDirPath();
+    QString assetDirPath = baseDir + "/../../assets";
+    QDir assetDir(assetDirPath);
+    if (!assetDir.exists()) {
+        if (!assetDir.mkpath(".")) {
+            qCritical() << "Failed to create directory:" << assetDirPath;
+            return false;
         }
+    }
+
+    QString filePath = assetDir.filePath("words.json");
+    QFile file(filePath);
+
+    if (file.exists()) {
+        qDebug() << "File exists. Deleting:" << filePath;
+        if (!file.remove()) {
+            qCritical() << "Failed to delete existing file:" << filePath;
+            return false;
+        }
+    }
+
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        qCritical() << "Error: Could not open file for writing:" << filePath;
+        return false;
+    }
+
+    file.write(jsonDoc.toJson(QJsonDocument::Indented));
+    file.close();
+
+    qDebug() << "File successfully written to:" << filePath;
     return true;
 }
-
