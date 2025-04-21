@@ -51,7 +51,6 @@ AutoCompleteApp::AutoCompleteApp(QWidget *parent)
             margin: 3;
             border-radius: 10px;
             height: 24px;
-
         }
         QPushButton:hover {
             background-color: #3F3F3F;
