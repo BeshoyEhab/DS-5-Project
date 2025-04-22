@@ -30,6 +30,8 @@ add_executable(FastWriterPro ${SOURCES} ${HEADERS}
     assets/words_dictionary.json
     data_model/datamodel.h data_model/datamodel.cpp
     assets/json.hpp
+    src/Style.css
+    src/Style.css
 )
 
 target_link_libraries(FastWriterPro PRIVATE

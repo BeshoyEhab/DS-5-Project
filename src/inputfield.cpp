@@ -55,4 +55,4 @@ void InputField::adjustHeight()
     // Set height between minimum (single line) and maximum (70% of window)
     int newHeight = qMin(maxHeight, qMax(fm.height() + 30, contentHeight));
     setMaximumHeight(newHeight);
-} 
+}
