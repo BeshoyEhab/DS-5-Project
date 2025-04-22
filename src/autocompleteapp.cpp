@@ -5,114 +5,21 @@
 #include <QLabel>
 #include <QRegularExpression>
 #include <QStyle>
+#include <QFile>
 #include <QSizePolicy>
 #include <QPropertyAnimation>
 #include <QEasingCurve>
 #include <QGraphicsOpacityEffect>
 #include <QMessageBox>
 
-AutoCompleteApp::AutoCompleteApp(QWidget *parent)
-    : QMainWindow(parent)
-    , selectedIndex(-1)
+AutoCompleteApp::AutoCompleteApp(QWidget *parent): QMainWindow(parent), selectedIndex(-1)
 {
-    setStyleSheet(R"(
-        QMainWindow {
-            background-color: #222222;
-            min-width: 530px;
-            min-height: 300px;
-        }
-        QTextEdit {
-            margin: 0;
-            padding: 8px 15px;
-            font-size: 18px;
-            border: 2px solid #5f5f5f;
-            border-radius: 22px;
-            color: #dcdcdc;
-            background-color: #515151;
-        }
-        QTextEdit:focus {
-            margin: 0;
-            padding: 8px 15px;
-            font-size: 18px;
-            border: 2px solid #D2D2D2;
-            border-radius: 22px;
-            color: #ffffff;
-            background-color: #515151;
-        }
-        QTextEdit[placeholder="true"] {
-            color: #484f58;
-        }
-        QPushButton {
-            background-color: #262626;
-            color: #9B9B9B;
-            padding: 8px 15px;
-            border: 1px solid #30363d;
-            font-size: 17px;
-            margin: 3;
-            border-radius: 10px;
-            height: 24px;
-        }
-        QPushButton:hover {
-            background-color: #3F3F3F;
-            color: #D6D6D6;
-            padding: 8px 15px;
-            border: none;
-            border-radius: 2px;
-            font-size: 14px;
-            margin: 3px;
-            min-width: 80px;
-        }
-        QPushButton[selected="true"] {
-            background-color: #3F3F3F;
-            border: 2px solid #949494;
-        }
-        QLabel {
-            color: #ffffff;
-            font-size: 32px;
-            font-weight: normal;
-        }
-        QWidget#suggestionContainer {
-            background-color: #3d3d3d;
-            border-top-left-radius: 15px;
-            border-top-right-radius: 15px;
-            border-bottom-left-radius: 0px;
-            border-bottom-right-radius: 0px;
-            margin-left: auto;
-            margin-right: auto;
-            padding: 4px 12px;
-            min-height: 36px;
-            min-width:350px
-        }
-        QWidget#inputContainer {
-            margin: 0;
-            padding: 0;
-        }
-        QMessageBox{
-            background-color: #0d1117;
-        }
-        QMessageBox QLabel {
-            color: #ffffff;
-            font-size: 20px;
-
-        }
-        QMessageBox QPushButton {
-            background-color: #222222;
-            color: #A6A6A6;
-            border: none;
-            border-radius: 5px;
-            font-size: 14px;
-            padding: 5px 10px;
-            min-width: 70px;
-        }
-        QMessageBox QPushButton:hover {
-            border-radius: 5px;
-            border: 1px solid #30363d;
-            background-color: #E2E2E2;
-            color: #000000;
-        }
-
-
-    )");
+    QFile styleFile("/home/zvaxerows/projects/DS-5-Project/src/Style.css");
+    if (styleFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QString styleSheet = QLatin1String(styleFile.readAll());
+        setStyleSheet(styleSheet);
+        styleFile.close();
+    }
 
     setupUI();
     setupAutocomplete();
@@ -129,6 +36,7 @@ void AutoCompleteApp::setupUI()
 {
     QWidget *centralWidget = new QWidget(this);
     QVBoxLayout *mainLayout = new QVBoxLayout(centralWidget);
+
     mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->setSpacing(0);
 
@@ -269,7 +177,8 @@ void AutoCompleteApp::updateSelection()
         bool selected = (i == selectedIndex);
         suggestionButtons[i]->setStyleSheet(selected ?
             "background-color: #9d9d9d; color: #ffffff; border-radius: 20px;" :
-            "background-color: #21262d; color: rgba(255, 255, 255, 0.9); border-radius: 20px;");
+            "background-color: #21262d; color: rgba(255, 255, 255, 0.9); border-radius: 20px;"
+            );
     }
 }
 
@@ -294,7 +203,7 @@ void AutoCompleteApp::showSuggestions()
         opacityEffect->setOpacity(0.0);
 
         QPropertyAnimation *fadeAnimation = new QPropertyAnimation(opacityEffect, "opacity", this);
-        fadeAnimation->setDuration(150);
+        fadeAnimation->setDuration(1000);
         fadeAnimation->setStartValue(0.0);
         fadeAnimation->setEndValue(1.150);
         fadeAnimation->setEasingCurve(QEasingCurve::OutCubic);
@@ -307,7 +216,7 @@ void AutoCompleteApp::hideSuggestions()
 {
     if (suggestionContainer->isVisible()) {
         QPropertyAnimation *fadeAnimation = new QPropertyAnimation(opacityEffect, "opacity", this);
-        fadeAnimation->setDuration(100);
+        fadeAnimation->setDuration(200);
         fadeAnimation->setStartValue(opacityEffect->opacity());
         fadeAnimation->setEndValue(0.0);
         fadeAnimation->setEasingCurve(QEasingCurve::InCubic);
