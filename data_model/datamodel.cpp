@@ -8,35 +8,28 @@
 #include <QDebug>
 #include <QDir>
 #include <QCoreApplication>
+#include <nlohmann/json.hpp>
 
+using json = nlohmann::json;
 using namespace std;
 
 DataModel::DataModel(){}
 
-bool DataModel::readJson() {
+void DataModel::readJson(const QString& fileName) {
     QString baseDir = QCoreApplication::applicationDirPath();
     QString assetPath = QDir(baseDir + "/../../assets").absolutePath();
 
-    QStringList fileNames = {
-        assetPath + "/words.json",
-        assetPath + "/words_dictionary.json"
-    };
-
-    QFile file;
-    for (const QString& fileName : fileNames) {
-        qDebug() << "Trying to open file:" << fileName;
-        file.setFileName(fileName);
-        if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            qDebug() << "Opened file:" << fileName;
-            break;
-        }
+    QFile file(fileName);
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qDebug() << "Opened file:" << fileName;
+        break;
     }
 
     if (!file.isOpen()) {
-        qCritical() << "Neither words.json nor words_dictionary.json could be opened!";
-        return false;
+        qCritical() << fileName <<" couldn't be opened!";
+        return;
     }
-
+/*
     QByteArray jsonData = file.readAll();
     file.close();
 
@@ -45,29 +38,29 @@ bool DataModel::readJson() {
 
     if (parseError.error != QJsonParseError::NoError) {
         qCritical() << "JSON Parse Error:" << parseError.errorString();
-        return false;
+        return;
     }
 
     if (!doc.isObject()) {
         qCritical() << "Error: Expected JSON object!";
-        return false;
+        return;
     }
 
     words.clear();
-
-    QJsonObject obj = doc.object();
-    for (auto it = obj.begin(); it != obj.end(); ++it) {
+*/
+    json jsonData = json::parse(file.readAll().toStdString());
+    for (auto& [word, frequency] : jsonData.items()) {
         if (it.value().isDouble()) {
-            words[it.key().toStdString()] = it.value().toInt();
+            trie.insert(word, frequency);
         } else {
-            qWarning() << "Skipping key" << it.key() << "with non-integer value.";
+            qWarning() << "Skipping key " << it.key() << " with non-integer value.";
         }
     }
 
-    return true;
+    return;
 }
 
-
+/*
 int DataModel::getValue(const string &key){
     auto it = words.find(key);
     if(it != words.end()){
@@ -95,8 +88,8 @@ void DataModel::addWord(string key, int frequency){
         temp[key] += frequency; // Works whether key exists or not
     }
 }
-
-bool DataModel::saveJson() {
+*/
+void DataModel::saveJson() {
     QJsonObject jsonObj;
     for (const auto& [key, value] : words) {
         jsonObj[QString::fromStdString(key)] = value;
@@ -110,7 +103,7 @@ bool DataModel::saveJson() {
     if (!assetDir.exists()) {
         if (!assetDir.mkpath(".")) {
             qCritical() << "Failed to create directory:" << assetDirPath;
-            return false;
+            return;
         }
     }
 
@@ -121,18 +114,18 @@ bool DataModel::saveJson() {
         qDebug() << "File exists. Deleting:" << filePath;
         if (!file.remove()) {
             qCritical() << "Failed to delete existing file:" << filePath;
-            return false;
+            return;
         }
     }
 
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         qCritical() << "Error: Could not open file for writing:" << filePath;
-        return false;
+        return;
     }
 
     file.write(jsonDoc.toJson(QJsonDocument::Indented));
     file.close();
 
     qDebug() << "File successfully written to:" << filePath;
-    return true;
+    return;
 }

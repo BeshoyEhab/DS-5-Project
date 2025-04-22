@@ -1,23 +1,20 @@
-#ifndef DATAMODEL_H
-#define DATAMODEL_H
 #include <string>
-#include <map>
+#include "trie.h"
 
 using namespace std;
 
 class DataModel{
 
 private:
-    map<string, int> words;
-    map<string, int> temp;
+    Trie trie;
 
 public:
     DataModel();
-    bool readJson();
+    void readJson();
+    /*
     int getValue(const string &key);
     void addWord(string key, int frequency = 1);
     void deleteWord(string key);
-    bool saveJson();
+    */
+    void saveJson();
 };
-
-#endif
