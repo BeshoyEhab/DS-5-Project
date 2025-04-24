@@ -7,7 +7,7 @@
 #include <QDebug>
 #include <QDir>
 #include <QCoreApplication>
-#include <nlohmann/json.hpp>
+#include "../assets/json.hpp"
 
 using json = nlohmann::json;
 
@@ -79,43 +79,44 @@ void DataModel::addWord(string key, int frequency){
     }
 }
 */
-void DataModel::saveJson() {
-    QJsonObject jsonObj;
-    for (const auto& [key, value] : words) {
-        jsonObj[QString::fromStdString(key)] = value;
-    }
 
-    QJsonDocument jsonDoc(jsonObj);
+// void DataModel::saveJson() {
+//     QJsonObject jsonObj;
+//     for (const auto& [key, value] : words) {
+//         jsonObj[QString::fromStdString(key)] = value;
+//     }
 
-    QString baseDir = QCoreApplication::applicationDirPath();
-    QString assetDirPath = baseDir + "/../../assets";
-    QDir assetDir(assetDirPath);
-    if (!assetDir.exists()) {
-        if (!assetDir.mkpath(".")) {
-            qCritical() << "Failed to create directory:" << assetDirPath;
-            return;
-        }
-    }
+//     QJsonDocument jsonDoc(jsonObj);
 
-    QString filePath = assetDir.filePath("words.json");
-    QFile file(filePath);
+//     QString baseDir = QCoreApplication::applicationDirPath();
+//     QString assetDirPath = baseDir + "/../../assets";
+//     QDir assetDir(assetDirPath);
+//     if (!assetDir.exists()) {
+//         if (!assetDir.mkpath(".")) {
+//             qCritical() << "Failed to create directory:" << assetDirPath;
+//             return;
+//         }
+//     }
 
-    if (file.exists()) {
-        qDebug() << "File exists. Deleting:" << filePath;
-        if (!file.remove()) {
-            qCritical() << "Failed to delete existing file:" << filePath;
-            return;
-        }
-    }
+//     QString filePath = assetDir.filePath("words.json");
+//     QFile file(filePath);
 
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        qCritical() << "Error: Could not open file for writing:" << filePath;
-        return;
-    }
+//     if (file.exists()) {
+//         qDebug() << "File exists. Deleting:" << filePath;
+//         if (!file.remove()) {
+//             qCritical() << "Failed to delete existing file:" << filePath;
+//             return;
+//         }
+//     }
 
-    file.write(jsonDoc.toJson(QJsonDocument::Indented));
-    file.close();
+//     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+//         qCritical() << "Error: Could not open file for writing:" << filePath;
+//         return;
+//     }
 
-    qDebug() << "File successfully written to:" << filePath;
-    return;
-}
+//     file.write(jsonDoc.toJson(QJsonDocument::Indented));
+//     file.close();
+
+//     qDebug() << "File successfully written to:" << filePath;
+//     return;
+// }
