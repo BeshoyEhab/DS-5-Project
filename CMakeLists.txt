@@ -36,6 +36,7 @@ add_executable(FastWriterPro ${SOURCES} ${HEADERS}
     data_model/datamodel.h
     data_model/datamodel.cpp
     assets/json.hpp
+    assets/json.hpp
 )
 
 target_link_libraries(FastWriterPro PRIVATE

@@ -7,7 +7,7 @@
 #include <QDebug>
 #include <QDir>
 #include <QCoreApplication>
-#include "../assets/json.hpp"
+#include <../assets/json.hpp>
 
 using json = nlohmann::json;
 
