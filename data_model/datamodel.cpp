@@ -1,5 +1,4 @@
 #include "datamodel.h"
-#include <iostream>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonParseError>
@@ -11,18 +10,13 @@
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
-using namespace std;
 
 DataModel::DataModel(){}
 
 void DataModel::readJson(const QString& fileName) {
-    QString baseDir = QCoreApplication::applicationDirPath();
-    QString assetPath = QDir(baseDir + "/../../assets").absolutePath();
-
     QFile file(fileName);
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         qDebug() << "Opened file:" << fileName;
-        break;
     }
 
     if (!file.isOpen()) {
@@ -50,11 +44,7 @@ void DataModel::readJson(const QString& fileName) {
 */
     json jsonData = json::parse(file.readAll().toStdString());
     for (auto& [word, frequency] : jsonData.items()) {
-        if (it.value().isDouble()) {
-            trie.insert(word, frequency);
-        } else {
-            qWarning() << "Skipping key " << it.key() << " with non-integer value.";
-        }
+        trie.insert(word, frequency);
     }
 
     return;

@@ -1,7 +1,5 @@
-#include <string>
 #include "trie.h"
-
-using namespace std;
+#include <QString>
 
 class DataModel{
 
@@ -10,7 +8,7 @@ private:
 
 public:
     DataModel();
-    void readJson();
+    void readJson(const QString& fileName);
     /*
     int getValue(const string &key);
     void addWord(string key, int frequency = 1);
