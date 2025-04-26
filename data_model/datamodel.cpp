@@ -1,4 +1,5 @@
 #include "datamodel.h"
+#include <iostream>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonParseError>
@@ -9,21 +10,34 @@
 #include <QCoreApplication>
 #include <../assets/json.hpp>
 
-using json = nlohmann::json;
+using namespace std;
 
 DataModel::DataModel(){}
 
-void DataModel::readJson(const QString& fileName) {
-    QFile file(fileName);
-    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qDebug() << "Opened file:" << fileName;
+bool DataModel::readJson() {
+    QString baseDir = QCoreApplication::applicationDirPath();
+    QString assetPath = QDir(baseDir + "/../../assets").absolutePath();
+
+    QStringList fileNames = {
+        assetPath + "/words.json",
+        assetPath + "/words_dictionary.json"
+    };
+
+    QFile file;
+    for (const QString& fileName : fileNames) {
+        qDebug() << "Trying to open file:" << fileName;
+        file.setFileName(fileName);
+        if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            qDebug() << "Opened file:" << fileName;
+            break;
+        }
     }
 
     if (!file.isOpen()) {
-        qCritical() << fileName <<" couldn't be opened!";
-        return;
+        qCritical() << "Neither words.json nor words_dictionary.json could be opened!";
+        return false;
     }
-/*
+
     QByteArray jsonData = file.readAll();
     file.close();
 
@@ -32,25 +46,29 @@ void DataModel::readJson(const QString& fileName) {
 
     if (parseError.error != QJsonParseError::NoError) {
         qCritical() << "JSON Parse Error:" << parseError.errorString();
-        return;
+        return false;
     }
 
     if (!doc.isObject()) {
         qCritical() << "Error: Expected JSON object!";
-        return;
+        return false;
     }
 
     words.clear();
-*/
-    json jsonData = json::parse(file.readAll().toStdString());
-    for (auto& [word, frequency] : jsonData.items()) {
-        trie.insert(word, frequency);
+
+    QJsonObject obj = doc.object();
+    for (auto it = obj.begin(); it != obj.end(); ++it) {
+        if (it.value().isDouble()) {
+            words[it.key().toStdString()] = it.value().toInt();
+        } else {
+            qWarning() << "Skipping key" << it.key() << "with non-integer value.";
+        }
     }
 
-    return;
+    return true;
 }
 
-/*
+
 int DataModel::getValue(const string &key){
     auto it = words.find(key);
     if(it != words.end()){
@@ -78,45 +96,44 @@ void DataModel::addWord(string key, int frequency){
         temp[key] += frequency; // Works whether key exists or not
     }
 }
-*/
 
-// void DataModel::saveJson() {
-//     QJsonObject jsonObj;
-//     for (const auto& [key, value] : words) {
-//         jsonObj[QString::fromStdString(key)] = value;
-//     }
+bool DataModel::saveJson() {
+    QJsonObject jsonObj;
+    for (const auto& [key, value] : words) {
+        jsonObj[QString::fromStdString(key)] = value;
+    }
 
-//     QJsonDocument jsonDoc(jsonObj);
+    QJsonDocument jsonDoc(jsonObj);
 
-//     QString baseDir = QCoreApplication::applicationDirPath();
-//     QString assetDirPath = baseDir + "/../../assets";
-//     QDir assetDir(assetDirPath);
-//     if (!assetDir.exists()) {
-//         if (!assetDir.mkpath(".")) {
-//             qCritical() << "Failed to create directory:" << assetDirPath;
-//             return;
-//         }
-//     }
+    QString baseDir = QCoreApplication::applicationDirPath();
+    QString assetDirPath = baseDir + "/../../assets";
+    QDir assetDir(assetDirPath);
+    if (!assetDir.exists()) {
+        if (!assetDir.mkpath(".")) {
+            qCritical() << "Failed to create directory:" << assetDirPath;
+            return false;
+        }
+    }
 
-//     QString filePath = assetDir.filePath("words.json");
-//     QFile file(filePath);
+    QString filePath = assetDir.filePath("words.json");
+    QFile file(filePath);
 
-//     if (file.exists()) {
-//         qDebug() << "File exists. Deleting:" << filePath;
-//         if (!file.remove()) {
-//             qCritical() << "Failed to delete existing file:" << filePath;
-//             return;
-//         }
-//     }
+    if (file.exists()) {
+        qDebug() << "File exists. Deleting:" << filePath;
+        if (!file.remove()) {
+            qCritical() << "Failed to delete existing file:" << filePath;
+            return false;
+        }
+    }
 
-//     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-//         qCritical() << "Error: Could not open file for writing:" << filePath;
-//         return;
-//     }
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        qCritical() << "Error: Could not open file for writing:" << filePath;
+        return false;
+    }
 
-//     file.write(jsonDoc.toJson(QJsonDocument::Indented));
-//     file.close();
+    file.write(jsonDoc.toJson(QJsonDocument::Indented));
+    file.close();
 
-//     qDebug() << "File successfully written to:" << filePath;
-//     return;
-// }
+    qDebug() << "File successfully written to:" << filePath;
+    return true;
+}

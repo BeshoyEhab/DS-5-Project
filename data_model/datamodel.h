@@ -1,18 +1,23 @@
-#include "trie.h"
-#include <QString>
+#ifndef DATAMODEL_H
+#define DATAMODEL_H
+#include <string>
+#include <map>
+
+using namespace std;
 
 class DataModel{
 
 private:
-    Trie trie;
+    map<string, int> words;
+    map<string, int> temp;
 
 public:
     DataModel();
-    void readJson(const QString& fileName);
-    /*
+    bool readJson();
     int getValue(const string &key);
     void addWord(string key, int frequency = 1);
     void deleteWord(string key);
-    */
-    void saveJson();
+    bool saveJson();
 };
+
+#endif

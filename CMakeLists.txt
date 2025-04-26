@@ -14,29 +14,23 @@ find_package(Qt6 COMPONENTS Core Gui Widgets REQUIRED)
 include_directories(${CMAKE_SOURCE_DIR}/headers)
 
 set(SOURCES
-    src/main.cpp
+    main.cpp
     src/autocompleteapp.cpp
     src/inputfield.cpp
     src/hoverablebutton.cpp
-    src/Style.css
-    src/trie.cpp
-    src/trienode.cpp
 )
 
 set(HEADERS
     headers/autocompleteapp.h
     headers/inputfield.h
     headers/hoverablebutton.h
-    headers/trie.h
-    headers/trienode.h
 )
 
 add_executable(FastWriterPro ${SOURCES} ${HEADERS}
     assets/words_dictionary.json
-    data_model/datamodel.h
-    data_model/datamodel.cpp
+    data_model/datamodel.h data_model/datamodel.cpp
     assets/json.hpp
-    assets/json.hpp
+    src/Style.css
 )
 
 target_link_libraries(FastWriterPro PRIVATE

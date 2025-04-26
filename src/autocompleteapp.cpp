@@ -15,6 +15,12 @@
 
 AutoCompleteApp::AutoCompleteApp(QWidget *parent): QMainWindow(parent), selectedIndex(-1)
 {
+    QString baseDir = QCoreApplication::applicationDirPath();
+    QString srcPath = QDir(baseDir + "/../../src").absolutePath();
+<<<<<<<<< Temporary merge branch 1
+=========
+
+>>>>>>>>> Temporary merge branch 2
     QFile styleFile(srcPath+"/Style.css");
     QString srcPath = QDir(baseDir + "/../../src").absolutePath();
     QString baseDir = QCoreApplication::applicationDirPath();
