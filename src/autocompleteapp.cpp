@@ -15,9 +15,9 @@
 
 AutoCompleteApp::AutoCompleteApp(QWidget *parent): QMainWindow(parent), selectedIndex(-1)
 {
-    QString baseDir = QCoreApplication::applicationDirPath();
-    QString srcPath = QDir(baseDir + "/../../src").absolutePath();
     QFile styleFile(srcPath+"/Style.css");
+    QString srcPath = QDir(baseDir + "/../../src").absolutePath();
+    QString baseDir = QCoreApplication::applicationDirPath();
     if (styleFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QString styleSheet = QLatin1String(styleFile.readAll());
         setStyleSheet(styleSheet);
