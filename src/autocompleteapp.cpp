@@ -217,24 +217,24 @@ void AutoCompleteApp::showSuggestions()
     }
 }
 
-void AutoCompleteApp::hideSuggestions()
-{
-    if (suggestionContainer->isVisible()) {
-        QPropertyAnimation *fadeAnimation = new QPropertyAnimation(opacityEffect, "opacity", this);
-        fadeAnimation->setDuration(200);
-        fadeAnimation->setStartValue(opacityEffect->opacity());
-        fadeAnimation->setEndValue(0.0);
-        fadeAnimation->setEasingCurve(QEasingCurve::InCubic);
+// void AutoCompleteApp::hideSuggestions()
+// {
+//     if (suggestionContainer->isVisible()) {
+//         QPropertyAnimation *fadeAnimation = new QPropertyAnimation(opacityEffect, "opacity", this);
+//         fadeAnimation->setDuration(200);
+//         fadeAnimation->setStartValue(opacityEffect->opacity());
+//         fadeAnimation->setEndValue(0.0);
+//         fadeAnimation->setEasingCurve(QEasingCurve::InCubic);
         
-        connect(fadeAnimation, &QPropertyAnimation::finished, [this, fadeAnimation]() {
-            suggestionContainer->hide();
-            emit suggestionsVisibilityChanged(false);
-            fadeAnimation->deleteLater();
-        });
+//         connect(fadeAnimation, &QPropertyAnimation::finished, [this, fadeAnimation]() {
+//             suggestionContainer->hide();
+//             emit suggestionsVisibilityChanged(false);
+//             fadeAnimation->deleteLater();
+//         });
         
-        fadeAnimation->start();
-    }
-}
+//         fadeAnimation->start();
+//     }
+// }
 
 void AutoCompleteApp::updateSuggestions()
 {
@@ -247,10 +247,10 @@ void AutoCompleteApp::updateSuggestions()
     }
 
     QString currentWord = getCurrentWord();
-    if(currentWord.isEmpty()) {
-        hideSuggestions();
-        return;
-    }
+    // if(currentWord.isEmpty()) {
+    //     hideSuggestions();
+    //     return;
+    // }
 
     QString baseWord = currentWord.toLower();
     bool capitalize = currentWord.length() > 0 && currentWord[0].isUpper();
@@ -300,9 +300,9 @@ void AutoCompleteApp::updateSuggestions()
             updateSelection();
             showSuggestions();
         }
-    } else {
+    } /*else {
         hideSuggestions();
-    }
+    }*/
 }
 
 void AutoCompleteApp::replaceCurrentWord(const QString &replacement)
