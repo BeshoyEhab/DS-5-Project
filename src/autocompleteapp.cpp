@@ -14,6 +14,7 @@
 #include <QDir>
 #include <string>
 #include "vector"
+using namespace std;
 
 
 
@@ -140,21 +141,9 @@ void AutoCompleteApp::setupUI()
 
 void AutoCompleteApp::setupAutocomplete()
 {
-
-
-
-    string m[] = {"Alex", "Alexa", "Alexis", "Alexander", "Alexandra"};
-    int size = sizeof(m)/sizeof(m[0]); // حساب حجم المصفوفة
-    QStringList alexNames;
-    for(int i = 0; i < size; i++) {
-        alexNames << QString::fromStdString(m[i]);
-    }
-
-    //t->printSuggestions(s);
-    //<< "Alex" << "Alexa" << "Alexis" << "Alexander" << "Alexandra"
-    wordDatabase["aa"] = alexNames ;
-
+    wordDatabase["alex"] = QStringList() << "Alex" << "Alexa" << "Alexis" << "Alexander" << "Alexandra";
     wordDatabase["arg"] = QStringList() << "Argon" << "Argo" << "Argue" << "Argument" << "Argueable";
+
 }
 
 void AutoCompleteApp::updateInputHeight()
@@ -234,24 +223,6 @@ void AutoCompleteApp::showSuggestions()
     }
 }
 
-// void AutoCompleteApp::hideSuggestions()
-// {
-//     if (suggestionContainer->isVisible()) {
-//         QPropertyAnimation *fadeAnimation = new QPropertyAnimation(opacityEffect, "opacity", this);
-//         fadeAnimation->setDuration(200);
-//         fadeAnimation->setStartValue(opacityEffect->opacity());
-//         fadeAnimation->setEndValue(0.0);
-//         fadeAnimation->setEasingCurve(QEasingCurve::InCubic);
-        
-//         connect(fadeAnimation, &QPropertyAnimation::finished, [this, fadeAnimation]() {
-//             suggestionContainer->hide();
-//             emit suggestionsVisibilityChanged(false);
-//             fadeAnimation->deleteLater();
-//         });
-        
-//         fadeAnimation->start();
-//     }
-// }
 
 void AutoCompleteApp::updateSuggestions()
 {
@@ -259,20 +230,15 @@ void AutoCompleteApp::updateSuggestions()
     clearSelection();
     suggestionButtons.clear();
     QLayoutItem* child;
+
     while ((child = suggestionContainer->layout()->takeAt(0)) != nullptr) {
         delete child->widget();
         delete child;
     }
 
     QString currentWord = getCurrentWord();
-    // if(currentWord.isEmpty()) {
-    //     hideSuggestions();
-    //     return;
-    // }
 
     QString baseWord = currentWord.toLower();
-    t->printSuggestions(baseWord.toStdString());
-    vector <string> e=t->V;
     bool capitalize = currentWord.length() > 0 && currentWord[0].isUpper();
     bool allCaps = currentWord == currentWord.toUpper();
 
@@ -280,9 +246,9 @@ void AutoCompleteApp::updateSuggestions()
         QHBoxLayout *layout = qobject_cast<QHBoxLayout*>(suggestionContainer->layout());
         layout->addStretch();
 
-
-        for(const auto &it : e ) {
-            QString suggestion = QString::fromStdString(it);
+        QStringList suggestions = wordDatabase[baseWord].mid(0,4);
+        for(int i = 0; i < suggestions.size(); ++i) {
+            QString suggestion = suggestions[i];
             QString displayText = suggestion;
 
             if(capitalize) {
@@ -320,9 +286,7 @@ void AutoCompleteApp::updateSuggestions()
             updateSelection();
             showSuggestions();
         }
-    } /*else {
-        hideSuggestions();
-    }*/
+    }
 }
 
 void AutoCompleteApp::replaceCurrentWord(const QString &replacement)
