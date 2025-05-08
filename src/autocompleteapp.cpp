@@ -12,10 +12,14 @@
 #include <QGraphicsOpacityEffect>
 #include <QMessageBox>
 #include <QDir>
+#include <string>
+#include "vector"
 
-AutoCompleteApp::AutoCompleteApp(QWidget *parent): QMainWindow(parent), selectedIndex(-1)
+
+
+AutoCompleteApp::AutoCompleteApp(Trie *r,QWidget *parent): QMainWindow(parent), selectedIndex(-1)
 {
-
+    t=r;
 
     QString baseDir = QCoreApplication::applicationDirPath();
     QString srcPath = QDir(baseDir + "/../../src").absolutePath();
@@ -136,7 +140,20 @@ void AutoCompleteApp::setupUI()
 
 void AutoCompleteApp::setupAutocomplete()
 {
-    wordDatabase["alex"] = QStringList() << "Alex" << "Alexa" << "Alexis" << "Alexander" << "Alexandra";
+
+
+
+    string m[] = {"Alex", "Alexa", "Alexis", "Alexander", "Alexandra"};
+    int size = sizeof(m)/sizeof(m[0]); // حساب حجم المصفوفة
+    QStringList alexNames;
+    for(int i = 0; i < size; i++) {
+        alexNames << QString::fromStdString(m[i]);
+    }
+
+    //t->printSuggestions(s);
+    //<< "Alex" << "Alexa" << "Alexis" << "Alexander" << "Alexandra"
+    wordDatabase["aa"] = alexNames ;
+
     wordDatabase["arg"] = QStringList() << "Argon" << "Argo" << "Argue" << "Argument" << "Argueable";
 }
 
@@ -238,6 +255,7 @@ void AutoCompleteApp::showSuggestions()
 
 void AutoCompleteApp::updateSuggestions()
 {
+
     clearSelection();
     suggestionButtons.clear();
     QLayoutItem* child;
@@ -253,16 +271,18 @@ void AutoCompleteApp::updateSuggestions()
     // }
 
     QString baseWord = currentWord.toLower();
+    t->printSuggestions(baseWord.toStdString());
+    vector <string> e=t->V;
     bool capitalize = currentWord.length() > 0 && currentWord[0].isUpper();
     bool allCaps = currentWord == currentWord.toUpper();
 
-    if(wordDatabase.contains(baseWord)) {
+    if(!e.empty()) {
         QHBoxLayout *layout = qobject_cast<QHBoxLayout*>(suggestionContainer->layout());
         layout->addStretch();
 
-        QStringList suggestions = wordDatabase[baseWord].mid(0,4);
-        for(int i = 0; i < suggestions.size(); ++i) {
-            QString suggestion = suggestions[i];
+
+        for(const auto &it : e ) {
+            QString suggestion = QString::fromStdString(it);
             QString displayText = suggestion;
 
             if(capitalize) {

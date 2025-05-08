@@ -31,6 +31,7 @@ add_executable(FastWriterPro ${SOURCES} ${HEADERS}
     data_model/datamodel.h data_model/datamodel.cpp
     assets/json.hpp
     src/Style.css
+    trie.h trie.cpp
 )
 
 target_link_libraries(FastWriterPro PRIVATE

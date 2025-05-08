@@ -8,6 +8,10 @@
 #include <QPropertyAnimation>
 #include <QGraphicsOpacityEffect>
 #include <QParallelAnimationGroup>
+#include "../trie.h"
+
+
+
 
 class InputField;
 class QLabel;
@@ -16,7 +20,8 @@ class AutoCompleteApp : public QMainWindow {
     Q_OBJECT
 
 public:
-    explicit AutoCompleteApp(QWidget *parent = nullptr);
+    Trie* t  ;
+    explicit AutoCompleteApp(Trie* t,QWidget *parent = nullptr);
 
 signals:
     void suggestionsVisibilityChanged(bool visible);
