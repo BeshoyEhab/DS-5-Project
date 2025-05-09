@@ -14,12 +14,13 @@
 #include <QDir>
 #include <string>
 #include "vector"
+#include <QTimer>
 #include <iostream>
 using namespace std;
 
 
 
-AutoCompleteApp::AutoCompleteApp(Trie *r,QWidget *parent): QMainWindow(parent), selectedIndex(-1)
+AutoCompleteApp::AutoCompleteApp(Trie *r,QWidget *parent): QMainWindow(parent), selectedIndex(-1), isHoveringSuggestion(false)
 {
     t=r;
 
@@ -36,6 +37,12 @@ AutoCompleteApp::AutoCompleteApp(Trie *r,QWidget *parent): QMainWindow(parent), 
     //setupAutocomplete();
     resize(800, 600);
     setWindowTitle("Fast Writer Pro");
+
+    // Initialize timer
+    searchDelayTimer = new QTimer(this);
+    searchDelayTimer->setSingleShot(true);
+    searchDelayTimer->setInterval(50); // 50ms delay
+    connect(searchDelayTimer, &QTimer::timeout, this, &AutoCompleteApp::updateSuggestions);
 }
 
 void AutoCompleteApp::keyPressEvent(QKeyEvent *event)
@@ -136,10 +143,13 @@ void AutoCompleteApp::setupUI()
     setCentralWidget(centralWidget);
     connect(inputField, &InputField::navigationKeyPressed,
             this, &AutoCompleteApp::handleNavigationKeys);
-    connect(inputField, &QTextEdit::textChanged,
-            this, &AutoCompleteApp::updateUI);
+    // connect(inputField, &QTextEdit::textChanged,this, &AutoCompleteApp::updateUI);
+    connect(inputField, &QTextEdit::textChanged, this, [this]() {
+        updateInputHeight();
+        searchDelayTimer->stop();  // Reset timer on new input
+        searchDelayTimer->start();
+    });
 }
-
 
 void AutoCompleteApp::updateInputHeight()
 {
@@ -182,8 +192,8 @@ void AutoCompleteApp::updateSelection()
     for(int i = 0; i < suggestionButtons.size(); i++) {
         bool selected = (i == selectedIndex);
         suggestionButtons[i]->setStyleSheet(selected ?
-            "background-color: #9d9d9d; color: #ffffff; border-radius: 20px;" :
-            "background-color: #21262d; color: rgba(255, 255, 255, 0.9); border-radius: 20px;"
+                "background-color:#e1e1e1; color:rgb(27, 27, 27) ; border-radius: 10px;" :
+                "background-color:#262626; color: rgba(255, 255, 255, 0.9); border-radius: 10px;"
             );
     }
 }
@@ -219,25 +229,46 @@ void AutoCompleteApp::showSuggestions()
 }
 
 
-
-
-QString currentWord;
 void AutoCompleteApp::updateSuggestions() {
-        if(!t) return;
-        clearSelection();
-        suggestionButtons.clear();
+    if(!t) return;
+    clearSelection();
+    suggestionButtons.clear();
 
+    // fade out animation
+    bool isInputEmpty = inputField->toPlainText().trimmed().isEmpty();
 
-        QLayoutItem* child;
-        while ((child = suggestionContainer->layout()->takeAt(0)) != nullptr) {
-            delete child->widget();
-            delete child;
+    if(isInputEmpty) {
+
+        if (suggestionContainer->isVisible()) {
+
+            QPropertyAnimation *fadeAnimation = new QPropertyAnimation(opacityEffect, "opacity", this);
+
+            fadeAnimation->setDuration(200);
+            fadeAnimation->setStartValue(opacityEffect->opacity());
+            fadeAnimation->setEndValue(0.0);
+            fadeAnimation->setEasingCurve(QEasingCurve::InCubic);
+
+            connect(fadeAnimation, &QPropertyAnimation::finished, [this, fadeAnimation]() {
+                suggestionContainer->hide();
+                emit suggestionsVisibilityChanged(false);
+                fadeAnimation->deleteLater();
+            });
+
+            fadeAnimation->start();
+
         }
+        return;
+    }
 
-        currentWord = getCurrentWord();
-        if(currentWord.isEmpty()) {
-            return;
-        }
+    QString currentWord = getCurrentWord();
+
+    // تنظيف الـ layout القديم
+    QLayoutItem* child;
+
+    while ((child = suggestionContainer->layout()->takeAt(0)) != nullptr) {
+        delete child->widget();
+        delete child;
+    }
 
     QString baseWord = currentWord.toLower();
     bool capitalize = currentWord.length() > 0 && currentWord[0].isUpper();
@@ -272,11 +303,13 @@ void AutoCompleteApp::updateSuggestions() {
             QFontMetrics fm(btn->font());
             int textWidth = fm.horizontalAdvance(displayText);
             // Add padding (16px on each side from the stylesheet + 5px extra on each side)
-            int totalWidth = textWidth + 42;  // 16px + 5px padding on each side
+            int totalWidth = textWidth + 50;  // 16px + 5px padding on each side
             btn->setMinimumWidth(totalWidth);
-
+            btn->installEventFilter(this);
             connect(btn, &QPushButton::clicked, [this, displayText]() {
                 replaceCurrentWord(displayText);
+
+
             });
 
             layout->addWidget(btn);
@@ -287,12 +320,6 @@ void AutoCompleteApp::updateSuggestions() {
         showSuggestions();
     }
 }
-
-
-
-
-
-
 
 
 void AutoCompleteApp::replaceCurrentWord(const QString &replacement)
@@ -307,6 +334,11 @@ void AutoCompleteApp::replaceCurrentWord(const QString &replacement)
 
 void AutoCompleteApp::handleNavigationKeys(QKeyEvent *event)
 {
+    if (suggestionButtons.isEmpty()) {
+        event->ignore();
+        return;
+    }
+
     switch(event->key()) {
     case Qt::Key_Tab:
         if (!suggestionButtons.isEmpty()) {
@@ -320,9 +352,11 @@ void AutoCompleteApp::handleNavigationKeys(QKeyEvent *event)
         break;
     case Qt::Key_Return:
     case Qt::Key_Enter:
-        if (!suggestionButtons.isEmpty()) {
+        if (selectedIndex != -1 || isHoveringSuggestion) {
             activateSelected();
             event->accept();
+        } else {
+            event->ignore(); // Allow normal Enter behavior
         }
         break;
     case Qt::Key_Space:
@@ -339,7 +373,6 @@ void AutoCompleteApp::handleNavigationKeys(QKeyEvent *event)
     default:
         event->ignore();
     }
-
 }
 
 void AutoCompleteApp::closeEvent(QCloseEvent *event) {

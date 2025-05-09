@@ -39,12 +39,13 @@ QPushButton:hover {
     color: #151515;
     padding: 8px 15px;
     border: none;
-    border-radius: 2px;
+    border-radius: 10px;
     font-size: 17px;
     margin: 3px;
     min-width: 80px;
 }
 QPushButton[selected="true"] {
+    border-radius: 10px;
     background-color: #bcbcbc;
     border: 2px solid #151515;
     font-weight:bold;

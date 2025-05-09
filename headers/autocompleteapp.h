@@ -8,6 +8,7 @@
 #include <QPropertyAnimation>
 #include <QGraphicsOpacityEffect>
 #include <QParallelAnimationGroup>
+#include <QTimer>
 #include "../trie.h"
 
 
@@ -40,6 +41,8 @@ private:
     QPropertyAnimation *slideAnimation;
     QGraphicsOpacityEffect *opacityEffect;
     QParallelAnimationGroup *currentAnimGroup;
+    QTimer *searchDelayTimer;
+    bool isHoveringSuggestion;
 
     void setupUI();
     void setupAutocomplete();
