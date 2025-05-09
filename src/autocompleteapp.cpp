@@ -137,7 +137,7 @@ void AutoCompleteApp::setupUI()
     mainLayout->addStretch(1);
 
     // Update showSuggestions and hideSuggestions methods to handle the spacer
-    connect(this, &AutoCompleteApp::suggestionsVisibilityChanged, 
+    connect(this, &AutoCompleteApp::suggestionsVisibilityChanged,
             suggestionsSpacer, &QWidget::setVisible);
 
     setCentralWidget(centralWidget);
