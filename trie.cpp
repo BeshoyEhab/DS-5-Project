@@ -69,19 +69,15 @@ void Trie:: printAllWordsFromNode(Node* node, string prefix) {
         printAllWordsFromNode(pair.second, prefix + pair.first);
     }
 
-    map<int, string>::iterator it;
-
-        for (it = mab.begin(); it != mab.end(); it++)
-        {
-           V.emplace_back(it->second);
-        }
-        mab.clear();
 
 }
 
-void Trie:: printSuggestions(const string prefix) {
+void Trie::printSuggestions(const string prefix) {
+    mab.clear();
+    V.clear(); // تنظيف المتجه أولاً
+
     Node* node = root;
-    for (int i = 0; i < prefix.size();i++) {
+    for (int i = 0; i < prefix.size(); i++) {
         if (node->child.find(prefix[i]) != node->child.end()) {
             node = node->child[prefix[i]];
         }
@@ -90,5 +86,12 @@ void Trie:: printSuggestions(const string prefix) {
             return;
         }
     }
+
     printAllWordsFromNode(node, prefix);
+
+    // أخذ أول 4 اقتراحات (أو أقل إذا لم تكن متوفرة)
+    int count = 0;
+    for (auto it = mab.begin(); it != mab.end() && count < 4; ++it, ++count) {
+        V.push_back(it->second); // استخدام push_back بدلاً من الوصول بالمؤشر
+    }
 }
