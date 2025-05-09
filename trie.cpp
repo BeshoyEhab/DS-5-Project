@@ -16,42 +16,55 @@ Node::Node()
 
 
 
-Trie::Trie()
-{
+Trie::Trie() {
     root = new Node();
+    autoo.clear();
 }
 
 
-
-void Trie::insert(string s,int f)
-{
+void Trie::insert(string s, int f) {
     Node* node = root;
-    for (int i = 0; i < s.length(); i++)
-    {
-        if (!node->child[s[i]])
-        {
-            node->child[s[i]] = new Node();
+    for (char c : s) {
+        if (!node->child[c]) {
+            node->child[c] = new Node();
         }
-        node = node->child[s[i]];
+        node = node->child[c];
     }
-    node->freq =f;
-    node->path = s.length();
+    node->freq = f;
 }
 
 
-
-bool Trie::contain(string s)
-{
+void Trie::increaseF(string s) {
     Node* node = root;
-    for (int i = 0; i < s.size(); i++)
-    {
-        if (!node->child[s[i]])
-            return false;
-        node = node->child[s[i]];
+    for (char c : s) {
+        node = node->child[c];
     }
-    return true;
+    if (node->freq > 0) {
+        node->freq++;
+        cout << " frequancy increased  " << s << " to " << node->freq << endl;
+    }
 }
 
+void Trie::autosave(string s) {
+    autoo[s]++;
+
+    if (autoo[s] == 3) {
+        insert(s, 3);
+        cout << "new word saved " << s << endl;
+    }
+}
+
+
+bool Trie::contain(string s) {
+    Node* node = root;
+    for (char c : s) {
+        if (node->child.find(c) == node->child.end()) {
+            return false;
+        }
+        node = node->child[c];
+    }
+    return (node->freq > 0);
+}
 
 
 
@@ -62,7 +75,7 @@ void Trie:: printAllWordsFromNode(Node* node, string prefix) {
         mab.insert(make_pair(node->freq, prefix));
         q.push(prefix);
         m.insert(make_pair(node->path, prefix));
-        //cout << prefix << endl;
+
 
     }
     for (auto& pair : node->child) {
@@ -74,7 +87,7 @@ void Trie:: printAllWordsFromNode(Node* node, string prefix) {
 
 void Trie::printSuggestions(const string prefix) {
     mab.clear();
-    V.clear(); // تنظيف المتجه أولاً
+    V.clear();
 
     Node* node = root;
     for (int i = 0; i < prefix.size(); i++) {
@@ -89,9 +102,9 @@ void Trie::printSuggestions(const string prefix) {
 
     printAllWordsFromNode(node, prefix);
 
-    // أخذ أول 4 اقتراحات (أو أقل إذا لم تكن متوفرة)
+
     int count = 0;
     for (auto it = mab.begin(); it != mab.end() && count < 4; ++it, ++count) {
-        V.push_back(it->second); // استخدام push_back بدلاً من الوصول بالمؤشر
+        V.push_back(it->second);
     }
 }

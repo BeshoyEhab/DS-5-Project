@@ -32,6 +32,8 @@ public:
 public:
     Trie();
     void insert(string,int);
+    void increaseF(string);
+    void autosave(string);
     bool contain(string);
     void printAllWordsFromNode(Node* node, string prefix);
     void printSuggestions(const string prefix);
@@ -48,4 +50,4 @@ public:
 
 
 
-#endif // TRIE_H
+#endif

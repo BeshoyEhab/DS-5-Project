@@ -14,6 +14,7 @@
 #include <QDir>
 #include <string>
 #include "vector"
+#include <iostream>
 using namespace std;
 
 
@@ -139,12 +140,6 @@ void AutoCompleteApp::setupUI()
             this, &AutoCompleteApp::updateUI);
 }
 
-// void AutoCompleteApp::setupAutocomplete()
-// {
-//     wordDatabase["alex"] = QStringList() << "Alex" << "Alexa" << "Alexis" << "Alexander" << "Alexandra";
-//     wordDatabase["arg"] = QStringList() << "Argon" << "Argo" << "Argue" << "Argument" << "Argueable";
-
-// }
 
 void AutoCompleteApp::updateInputHeight()
 {
@@ -224,105 +219,32 @@ void AutoCompleteApp::showSuggestions()
 }
 
 
-// void AutoCompleteApp::updateSuggestions()
-// {
 
 
-//     clearSelection();
-//     suggestionButtons.clear();
-//     QLayoutItem* child;
-
-//     while ((child = suggestionContainer->layout()->takeAt(0)) != nullptr) {
-//         delete child->widget();
-//         delete child;
-//     }
-
-//     QString currentWord = getCurrentWord();
-
-//     QString baseWord = currentWord.toLower();
-//     bool capitalize = currentWord.length() > 0 && currentWord[0].isUpper();
-//     bool allCaps = currentWord == currentWord.toUpper();
-
-
-//     t->printSuggestions(baseWord.toStdString());
-//     vector<string> sugs = t->V;
-
-
-//     if(!sugs.empty()) {
-//         QHBoxLayout *layout = qobject_cast<QHBoxLayout*>(suggestionContainer->layout());
-//         layout->addStretch();
-
-//         for(const auto &it:sugs) {
-//             QString suggestion = QString::fromStdString(it);
-//             QString displayText = suggestion;
-
-//             if(capitalize) {
-//                 displayText = suggestion.left(1).toUpper() + suggestion.mid(1).toLower();
-//             } else if(allCaps) {
-//                 displayText = suggestion.toUpper();
-//             } else {
-//                 displayText = suggestion.toLower();
-//             }
-
-//             QPushButton *btn = new QPushButton(displayText);
-//             btn->setCursor(Qt::PointingHandCursor);
-//             btn->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-//             btn->setMinimumHeight(26);
-
-//             // Calculate the width needed for the text
-//             QFontMetrics fm(btn->font());
-//             int textWidth = fm.horizontalAdvance(displayText);
-//             // Add padding (16px on each side from the stylesheet + 5px extra on each side)
-//             int totalWidth = textWidth + 42;  // 16px + 5px padding on each side
-//             btn->setMinimumWidth(totalWidth);
-
-//             connect(btn, &QPushButton::clicked, [this, displayText]() {
-//                 replaceCurrentWord(displayText);
-//             });
-
-//             layout->addWidget(btn);
-//             suggestionButtons.append(btn);
-//         }
-
-//         layout->addStretch();
-
-//         if(!suggestionButtons.isEmpty()) {
-//             selectedIndex = 0;
-//             updateSelection();
-//             showSuggestions();
-//         }
-//     }
-// }
-
-
-
-
-
-
-
+QString currentWord;
 void AutoCompleteApp::updateSuggestions() {
-    if(!t) return;
-    clearSelection();
-    suggestionButtons.clear();
+        if(!t) return;
+        clearSelection();
+        suggestionButtons.clear();
 
-    // تنظيف الـ layout القديم
-    QLayoutItem* child;
-    while ((child = suggestionContainer->layout()->takeAt(0)) != nullptr) {
-        delete child->widget();
-        delete child;
-    }
 
-    QString currentWord = getCurrentWord();
-    if(currentWord.isEmpty()) {
-        return;
-    }
+        QLayoutItem* child;
+        while ((child = suggestionContainer->layout()->takeAt(0)) != nullptr) {
+            delete child->widget();
+            delete child;
+        }
+
+        currentWord = getCurrentWord();
+        if(currentWord.isEmpty()) {
+            return;
+        }
 
     QString baseWord = currentWord.toLower();
     bool capitalize = currentWord.length() > 0 && currentWord[0].isUpper();
     bool allCaps = currentWord == currentWord.toUpper();
 
     t->printSuggestions(baseWord.toStdString());
-    vector<string>& sugs = t->V; // مرجع لتجنب النسخ
+    vector<string>& sugs = t->V;
 
     if(!sugs.empty()) {
         QHBoxLayout *layout = qobject_cast<QHBoxLayout*>(suggestionContainer->layout());
@@ -330,7 +252,7 @@ void AutoCompleteApp::updateSuggestions() {
 
         for(const auto &it : sugs) {
             QString suggestion = QString::fromStdString(it);
-            // ... باقي الكود كما هو ...
+
             QString displayText = suggestion;
 
             if(capitalize) {
@@ -375,6 +297,8 @@ void AutoCompleteApp::updateSuggestions() {
 
 void AutoCompleteApp::replaceCurrentWord(const QString &replacement)
 {
+    t->increaseF(replacement.toLower().toStdString());
+
     QTextCursor cursor = inputField->textCursor();
     cursor.select(QTextCursor::WordUnderCursor);
     cursor.insertText(replacement + " ");
@@ -383,28 +307,39 @@ void AutoCompleteApp::replaceCurrentWord(const QString &replacement)
 
 void AutoCompleteApp::handleNavigationKeys(QKeyEvent *event)
 {
-    if (suggestionButtons.isEmpty()) {
-        event->ignore();
-        return;
-    }
-
     switch(event->key()) {
     case Qt::Key_Tab:
-        if(event->modifiers() & Qt::ShiftModifier) {
-            selectPrevious();
-        } else {
-            selectNext();
+        if (!suggestionButtons.isEmpty()) {
+            if(event->modifiers() & Qt::ShiftModifier) {
+                selectPrevious();
+            } else {
+                selectNext();
+            }
+            event->accept();
         }
-        event->accept();
         break;
     case Qt::Key_Return:
     case Qt::Key_Enter:
-        activateSelected();
+        if (!suggestionButtons.isEmpty()) {
+            activateSelected();
+            event->accept();
+        }
+        break;
+    case Qt::Key_Space:
+        if (!currentWord.isEmpty()) {
+            string wordLower = currentWord.toLower().toStdString();
+            if (t->contain(wordLower)) {
+                t->increaseF(wordLower);
+            } else {
+                t->autosave(wordLower);
+            }
+        }
         event->accept();
         break;
     default:
         event->ignore();
     }
+
 }
 
 void AutoCompleteApp::closeEvent(QCloseEvent *event) {
