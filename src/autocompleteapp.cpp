@@ -15,7 +15,6 @@
 #include <string>
 #include "vector"
 #include <QTimer>
-#include <iostream>
 using namespace std;
 
 
@@ -228,11 +227,13 @@ void AutoCompleteApp::showSuggestions()
     }
 }
 
+QString currentWord;
 
 void AutoCompleteApp::updateSuggestions() {
     if(!t) return;
     clearSelection();
     suggestionButtons.clear();
+    currentWord = getCurrentWord();
 
     // fade out animation
     bool isInputEmpty = inputField->toPlainText().trimmed().isEmpty();
@@ -255,12 +256,21 @@ void AutoCompleteApp::updateSuggestions() {
             });
 
             fadeAnimation->start();
-
         }
         return;
     }
 
-    QString currentWord = getCurrentWord();
+    if(currentWord.isEmpty()) {
+        // Clear buttons but keep container visible
+        QLayoutItem* child;
+        while ((child = suggestionContainer->layout()->takeAt(0)) != nullptr) {
+            delete child->widget();
+            delete child;
+        }
+        return; // Exit early - no need to process empty word
+    }
+
+
 
     // تنظيف الـ layout القديم
     QLayoutItem* child;
@@ -334,6 +344,8 @@ void AutoCompleteApp::replaceCurrentWord(const QString &replacement)
 
 void AutoCompleteApp::handleNavigationKeys(QKeyEvent *event)
 {
+    QString currentWord = getCurrentWord();
+
     if (suggestionButtons.isEmpty()) {
         event->ignore();
         return;
@@ -352,11 +364,24 @@ void AutoCompleteApp::handleNavigationKeys(QKeyEvent *event)
         break;
     case Qt::Key_Return:
     case Qt::Key_Enter:
-        if (selectedIndex != -1 || isHoveringSuggestion) {
+        if (selectedIndex != -1 || isHoveringSuggestion && !currentWord.isEmpty()) {
+            string wordLower = currentWord.toLower().toStdString();
+            if (t->contain(wordLower)) {
+                t->increaseF(wordLower);
+            } else {
+                t->autosave(wordLower);
+            }
             activateSelected();
             event->accept();
         } else {
             event->ignore(); // Allow normal Enter behavior
+            string wordLower = currentWord.toLower().toStdString();
+            if (t->contain(wordLower)) {
+                t->increaseF(wordLower);
+            } else {
+                t->autosave(wordLower);
+            }
+            activateSelected();
         }
         break;
     case Qt::Key_Space:
