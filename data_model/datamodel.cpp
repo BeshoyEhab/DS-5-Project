@@ -100,7 +100,6 @@ bool DataModel::readJson(Trie* t) {
 }
 
 
-
 bool DataModel::saveJson(Trie* t) {
     QString baseDir = QCoreApplication::applicationDirPath();
     QString assetDirPath = baseDir + "/../../assets";

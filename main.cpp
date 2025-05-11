@@ -29,6 +29,5 @@ int main(int argc, char *argv[]) {
         delete dataModel;        // تحرير الذاكرة
         delete t;
     });
-
     return app.exec();
 }

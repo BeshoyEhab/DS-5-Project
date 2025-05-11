@@ -11,11 +11,9 @@ class DataModel{
 public:
     map<string, int> words;
 
-
-
     DataModel();
     bool readJson( Trie *t );
-    bool saveJson( Trie *t );
+    bool saveJson(Trie* t);
 };
 
 #endif

@@ -34,6 +34,7 @@ AutoCompleteApp::AutoCompleteApp(Trie *r,QWidget *parent): QMainWindow(parent), 
         styleFile.close();
     }
 
+
     setupUI();
     //setupAutocomplete();
     resize(800, 600);
@@ -44,6 +45,7 @@ AutoCompleteApp::AutoCompleteApp(Trie *r,QWidget *parent): QMainWindow(parent), 
     searchDelayTimer->setSingleShot(true);
     searchDelayTimer->setInterval(50); // 50ms delay
     connect(searchDelayTimer, &QTimer::timeout, this, &AutoCompleteApp::updateSuggestions);
+
 }
 
 void AutoCompleteApp::keyPressEvent(QKeyEvent *event)
@@ -163,8 +165,6 @@ void AutoCompleteApp::setupUI()
     this->setMenuBar(menuBar);
 }
 
-
-
 void AutoCompleteApp::onSettingsChanged(bool bfs, int maxSug, bool usefreq)
 {
     // useBFS = bfs;
@@ -172,11 +172,6 @@ void AutoCompleteApp::onSettingsChanged(bool bfs, int maxSug, bool usefreq)
     // useFreq = usefreq;
     updateSuggestions();
 }
-
-
-
-
-
 void AutoCompleteApp::updateInputHeight()
 {
     int docHeight = inputField->document()->size().height();
@@ -254,9 +249,12 @@ void AutoCompleteApp::showSuggestions()
     }
 }
 
-QString currentWord;
 
+
+
+QString currentWord;
 void AutoCompleteApp::updateSuggestions() {
+
     if(!t) return;
     clearSelection();
     suggestionButtons.clear();
@@ -306,6 +304,7 @@ void AutoCompleteApp::updateSuggestions() {
         delete child->widget();
         delete child;
     }
+
 
     QString baseWord = currentWord.toLower();
     bool capitalize = currentWord.length() > 0 && currentWord[0].isUpper();
@@ -358,7 +357,6 @@ void AutoCompleteApp::updateSuggestions() {
     }
 }
 
-
 void AutoCompleteApp::replaceCurrentWord(const QString &replacement)
 {
     t->increaseF(replacement.toLower().toStdString());
@@ -368,6 +366,8 @@ void AutoCompleteApp::replaceCurrentWord(const QString &replacement)
     cursor.insertText(replacement + " ");
     inputField->setFocus();
 }
+
+
 
 void AutoCompleteApp::handleNavigationKeys(QKeyEvent *event)
 {
@@ -385,19 +385,22 @@ void AutoCompleteApp::handleNavigationKeys(QKeyEvent *event)
         break;
     case Qt::Key_Return:
     case Qt::Key_Enter:
+
         if (selectedIndex != -1 || isHoveringSuggestion && !currentWord.isEmpty()) {
             string wordLower = currentWord.toLower().toStdString();
             activateSelected();
             event->accept();
         } else {
-            event->ignore(); // Allow normal Enter behavior
             string wordLower = currentWord.toLower().toStdString();
             if (t->contain(wordLower)) {
                 t->increaseF(wordLower);
             } else {
                 t->autosave(wordLower);
             }
+            event->ignore(); // Allow normal Enter behavior
+
             activateSelected();
+
         }
         break;
     case Qt::Key_Space:
@@ -414,6 +417,7 @@ void AutoCompleteApp::handleNavigationKeys(QKeyEvent *event)
     default:
         event->ignore();
     }
+
 }
 
 void AutoCompleteApp::closeEvent(QCloseEvent *event) {
@@ -440,3 +444,4 @@ void AutoCompleteApp::closeEvent(QCloseEvent *event) {
         event->ignore();     // إلغاء الإغلاق
     }
 }
+

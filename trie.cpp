@@ -94,6 +94,16 @@ bool Trie::contain(string s) {
 }
 
 
+void Trie:: allWords(Node* node, string currentWord, map<string,int> words) {
+    if (node->freq>0) {
+        words.insert(make_pair(currentWord,node->freq));
+    }
+
+    for (auto& pair : node->child) {
+        allWords(pair.second, currentWord + pair.first, words);
+    }
+}
+
 
 void Trie:: printAllWordsFromNode(Node* node, string prefix) {
 

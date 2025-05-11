@@ -35,6 +35,8 @@ public:
 
 public:
     Trie();
+    void allWords(Node* node, string currentWord, map<string,int> words);
+    vector<string> getAllWords();
     void insert(string,int);
     void add(string);
     bool remove(string);
