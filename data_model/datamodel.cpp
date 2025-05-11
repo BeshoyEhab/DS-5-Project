@@ -1,5 +1,4 @@
 #include "datamodel.h"
-#include <iostream>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonParseError>
