@@ -25,6 +25,7 @@ public:
     explicit AutoCompleteApp(Trie* t,QWidget *parent = nullptr);
 
 signals:
+    void aboutToClose();
     void suggestionsVisibilityChanged(bool visible);
 
 protected:
@@ -44,6 +45,7 @@ private:
     QTimer *searchDelayTimer;
     bool isHoveringSuggestion;
 
+    void onSettingsChanged(bool bfs, int maxSug, bool usefreq);
     void setupUI();
     void setupAutocomplete();
     void updateInputHeight();
@@ -63,4 +65,4 @@ private slots:
     void handleNavigationKeys(QKeyEvent *event);
 };
 
-#endif // AUTOCOMPLETEAPP_H 
+#endif // AUTOCOMPLETEAPP_H

@@ -100,71 +100,61 @@ bool DataModel::readJson(Trie* t) {
 }
 
 
-int DataModel::getValue(const string &key){
-    auto it = words.find(key);
-    if(it != words.end()){
-        return it->second;
-    }
 
-    auto tempIt = temp.find(key);
-    if(tempIt != temp.end()){
-        return tempIt->second;
-    }
-
-    return -1;
-}
-
-void DataModel::deleteWord(string key){
-    words.erase(key);
-}
-
-void DataModel::addWord(string key, int frequency){
-    if(words.find(key) != words.end()){
-        cout << "Frequency increased" << endl;
-        words[key] += frequency;
-    } else {
-        cout << "Added temp value" << endl;
-        temp[key] += frequency; // Works whether key exists or not
-    }
-}
-
-bool DataModel::saveJson() {
-    QJsonObject jsonObj;
-    for (const auto& [key, value] : words) {
-        jsonObj[QString::fromStdString(key)] = value;
-    }
-
-    QJsonDocument jsonDoc(jsonObj);
-
+bool DataModel::saveJson(Trie* t) {
     QString baseDir = QCoreApplication::applicationDirPath();
     QString assetDirPath = baseDir + "/../../assets";
     QDir assetDir(assetDirPath);
-    if (!assetDir.exists()) {
-        if (!assetDir.mkpath(".")) {
-            qCritical() << "Failed to create directory:" << assetDirPath;
-            return false;
-        }
-    }
 
-    QString filePath = assetDir.filePath("words.json");
-    QFile file(filePath);
-
-    if (file.exists()) {
-        qDebug() << "File exists. Deleting:" << filePath;
-        if (!file.remove()) {
-            qCritical() << "Failed to delete existing file:" << filePath;
-            return false;
-        }
-    }
-
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        qCritical() << "Error: Could not open file for writing:" << filePath;
+    if (!assetDir.exists() && !assetDir.mkpath(".")) {
+        qCritical() << "Failed to create directory:" << assetDirPath;
         return false;
     }
 
-    file.write(jsonDoc.toJson(QJsonDocument::Indented));
-    file.close();
+    QString tempFilePath = assetDir.filePath("words_temp.json");
+    QFile tempFile(tempFilePath);
 
-    qDebug() << "File successfully written to:" << filePath;
+    if (!tempFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        qCritical() << "Error: Could not open temp file for writing:" << tempFilePath;
+        return false;
+    }
+
+    // ابدأ بكتابة الملف يدوياً بدون تحميل كل البيانات في الذاكرة
+    tempFile.write("{\n");
+
+    int counter = 0;
+    bool firstEntry = true;
+    for (const auto& [key, value] : t->allwards) {
+        if (!firstEntry) {
+            tempFile.write(",\n");
+        }
+        firstEntry = false;
+
+        QString entry = QString("\"%1\": %2").arg(QString::fromStdString(key)).arg(value);
+        tempFile.write(entry.toUtf8());
+
+        counter++;
+        if (counter % 10000 == 0) {
+            QCoreApplication::processEvents();
+            qDebug() << "Processed" << counter << "words...";
+        }
+    }
+
+    tempFile.write("\n}");
+    tempFile.close();
+
+    // استبدال الملف القديم
+    QString finalFilePath = assetDir.filePath("words.json");
+    if (QFile::exists(finalFilePath) && !QFile::remove(finalFilePath)) {
+        qCritical() << "Failed to remove old file";
+        return false;
+    }
+
+    if (!tempFile.rename(finalFilePath)) {
+        qCritical() << "Failed to rename temp file";
+        return false;
+    }
+
+    qDebug() << "File successfully saved with" << counter << "words";
     return true;
 }

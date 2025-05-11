@@ -18,12 +18,14 @@ set(SOURCES
     src/autocompleteapp.cpp
     src/inputfield.cpp
     src/hoverablebutton.cpp
+    src/settingsdialog.cpp 
 )
 
 set(HEADERS
     headers/autocompleteapp.h
     headers/inputfield.h
     headers/hoverablebutton.h
+    headers/settingsdialog.h
 )
 
 add_executable(FastWriterPro ${SOURCES} ${HEADERS}

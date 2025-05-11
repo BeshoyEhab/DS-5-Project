@@ -12,6 +12,8 @@
 #include <QGraphicsOpacityEffect>
 #include <QMessageBox>
 #include <QDir>
+#include <QMenuBar>
+#include <settingsdialog.h>
 #include <string>
 #include "vector"
 #include <QTimer>
@@ -148,7 +150,32 @@ void AutoCompleteApp::setupUI()
         searchDelayTimer->stop();  // Reset timer on new input
         searchDelayTimer->start();
     });
+
+    QMenuBar *menuBar = new QMenuBar();
+    QMenu *settingsMenu = menuBar->addMenu("Settings");
+    QAction *prefsAction = settingsMenu->addAction("Preferences...");
+    connect(prefsAction, &QAction::triggered, [this]() {
+        SettingsDialog dlg(t, this);
+        connect(&dlg, &SettingsDialog::settingsChanged,
+                this, &AutoCompleteApp::onSettingsChanged);
+        dlg.exec();
+    });
+    this->setMenuBar(menuBar);
 }
+
+
+
+void AutoCompleteApp::onSettingsChanged(bool bfs, int maxSug, bool usefreq)
+{
+    // useBFS = bfs;
+    // maxSuggestions = maxSug;
+    // useFreq = usefreq;
+    updateSuggestions();
+}
+
+
+
+
 
 void AutoCompleteApp::updateInputHeight()
 {
@@ -191,9 +218,9 @@ void AutoCompleteApp::updateSelection()
     for(int i = 0; i < suggestionButtons.size(); i++) {
         bool selected = (i == selectedIndex);
         suggestionButtons[i]->setStyleSheet(selected ?
-                "background-color:#e1e1e1; color:rgb(27, 27, 27) ; border-radius: 10px;" :
-                "background-color:#262626; color: rgba(255, 255, 255, 0.9); border-radius: 10px;"
-            );
+                                                "background-color:#e1e1e1; color:rgb(27, 27, 27) ; border-radius: 10px;" :
+                                                "background-color:#262626; color: rgba(255, 255, 255, 0.9); border-radius: 10px;"
+                                            );
     }
 }
 
@@ -344,12 +371,6 @@ void AutoCompleteApp::replaceCurrentWord(const QString &replacement)
 
 void AutoCompleteApp::handleNavigationKeys(QKeyEvent *event)
 {
-    QString currentWord = getCurrentWord();
-
-    if (suggestionButtons.isEmpty()) {
-        event->ignore();
-        return;
-    }
 
     switch(event->key()) {
     case Qt::Key_Tab:
@@ -366,11 +387,6 @@ void AutoCompleteApp::handleNavigationKeys(QKeyEvent *event)
     case Qt::Key_Enter:
         if (selectedIndex != -1 || isHoveringSuggestion && !currentWord.isEmpty()) {
             string wordLower = currentWord.toLower().toStdString();
-            if (t->contain(wordLower)) {
-                t->increaseF(wordLower);
-            } else {
-                t->autosave(wordLower);
-            }
             activateSelected();
             event->accept();
         } else {
@@ -401,24 +417,26 @@ void AutoCompleteApp::handleNavigationKeys(QKeyEvent *event)
 }
 
 void AutoCompleteApp::closeEvent(QCloseEvent *event) {
-    // Create a message box with custom buttons
+    // إنشاء صندوق حوار التأكيد
     QMessageBox msgBox(this);
     msgBox.setWindowTitle("Exit Confirmation");
-    msgBox.setText("You have unsaved changes. What would you like to do?");
+    msgBox.setText("Do you want to save before exiting?");
 
-    // Add custom buttons
-    QPushButton *saveButton = msgBox.addButton("Save", QMessageBox::AcceptRole);
-    QPushButton *discardButton = msgBox.addButton("Discard", QMessageBox::DestructiveRole);
+    // إضافة أزرار مخصصة
+    QPushButton *saveButton = msgBox.addButton("Save && Exit", QMessageBox::AcceptRole);
+    QPushButton *discardButton = msgBox.addButton("Exit Without Saving", QMessageBox::DestructiveRole);
     QPushButton *cancelButton = msgBox.addButton("Cancel", QMessageBox::RejectRole);
 
-    msgBox.exec();  // Show the dialog
+    msgBox.exec();  // عرض الحوار
 
-    // Determine which button was clicked
-    if (msgBox.clickedButton() == saveButton) {    // Call your save function
-        event->accept();  // Close the window
-    } else if (msgBox.clickedButton() == discardButton) {
-        event->accept();  // Close without saving
-    } else if (msgBox.clickedButton() == cancelButton) {
-        event->ignore();   // Cancel closing
+    if (msgBox.clickedButton() == saveButton) {
+        emit aboutToClose();  // إرسال إشارة الحفظ
+        event->accept();      // إغلاق النافذة
+    }
+    else if (msgBox.clickedButton() == discardButton) {
+        event->accept();      // إغلاق بدون حفظ
+    }
+    else {
+        event->ignore();     // إلغاء الإغلاق
     }
 }

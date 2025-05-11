@@ -1,7 +1,7 @@
 #include "trie.h"
 #include <iostream>
 #include <map>
-#include <unordered_map>
+#include <algorithm>
 #include <string>
 
 using namespace std;
@@ -31,6 +31,7 @@ void Trie::insert(string s, int f) {
         node = node->child[c];
     }
     node->freq = f;
+    allwards.insert(make_pair(s,f));
 }
 
 
@@ -41,6 +42,7 @@ void Trie::increaseF(string s) {
     }
     if (node->freq > 0) {
         node->freq++;
+        allwards[s]++;
         cout << " frequancy increased  " << s << " to " << node->freq << endl;
     }
 }
@@ -53,6 +55,31 @@ void Trie::autosave(string s) {
         cout << "new word saved " << s << endl;
     }
 }
+
+
+void Trie::add(string s) {
+    if(!contain(s))
+        insert(s,1);
+}
+
+
+bool Trie::remove(string s) {
+
+    Node* node = root;
+    if(contain(s))
+    {
+    for (char c : s) {
+        node = node->child[c];
+    }
+    node->freq =0;
+        return true;
+    }
+    else
+        return false;
+}
+
+
+
 
 
 bool Trie::contain(string s) {
@@ -72,9 +99,10 @@ void Trie:: printAllWordsFromNode(Node* node, string prefix) {
 
 
     if (node->freq>0) {
-        mab.insert(make_pair(node->freq, prefix));
-        q.push(prefix);
-        m.insert(make_pair(node->path, prefix));
+        //ابجدىDfs
+        mab.push_back({prefix, node->freq}); //equivalent to make_pair(node->freq, prefix)
+        // q.push(prefix);
+        // m.insert(make_pair(node->path, prefix));
 
 
     }
@@ -85,7 +113,7 @@ void Trie:: printAllWordsFromNode(Node* node, string prefix) {
 
 }
 
-void Trie::printSuggestions(const string prefix) {
+void Trie::printSuggestions(const string prefix , int numofsug) {
     mab.clear();
     V.clear();
 
@@ -102,9 +130,19 @@ void Trie::printSuggestions(const string prefix) {
 
     printAllWordsFromNode(node, prefix);
 
+    // sort(mab.begin(), mab.end(), [](const auto& a, const auto& b) {
+    //     return (a.second > b.second) || // Higher freq first
+    //            (a.second == b.second && a.first < b.first); // Then alphabetical
+    // });
 
-    int count = 0;
-    for (auto it = mab.begin(); it != mab.end() && count < 4; ++it, ++count) {
-        V.push_back(it->second);
+    sort(mab.begin(), mab.end(), [](const auto& a, const auto& b) {
+        if (a.second != b.second) return a.second > b.second;
+        if (a.first.length() != b.first.length()) // Preserve BFS length order
+            return a.first.length() < b.first.length();
+        return a.first < b.first; // Then alphabetical
+    });
+
+    for (int i = 0; i < min(numofsug, (int)mab.size()); i++) {
+          V.push_back(mab[i].first);
     }
 }
