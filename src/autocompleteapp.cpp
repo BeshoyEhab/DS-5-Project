@@ -167,9 +167,9 @@ void AutoCompleteApp::setupUI()
 
 void AutoCompleteApp::onSettingsChanged(bool bfs, int maxSug, bool usefreq)
 {
-    // useBFS = bfs;
-    // maxSuggestions = maxSug;
-    // useFreq = usefreq;
+    useBFS = bfs;
+    maxSuggestions = maxSug;
+    useFreq = usefreq;
     updateSuggestions();
 }
 void AutoCompleteApp::updateInputHeight()
@@ -310,7 +310,7 @@ void AutoCompleteApp::updateSuggestions() {
     bool capitalize = currentWord.length() > 0 && currentWord[0].isUpper();
     bool allCaps = currentWord == currentWord.toUpper();
 
-    t->printSuggestions(baseWord.toStdString());
+    t->printSuggestions(baseWord.toStdString(),maxSuggestions,useBFS,useFreq);
     vector<string>& sugs = t->V;
 
     if(!sugs.empty()) {

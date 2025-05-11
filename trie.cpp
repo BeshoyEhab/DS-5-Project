@@ -123,7 +123,7 @@ void Trie:: printAllWordsFromNode(Node* node, string prefix) {
 
 }
 
-void Trie::printSuggestions(const string prefix , int numofsug) {
+void Trie::printSuggestions(const string prefix , int numofsug,bool useBFS,bool useFreq) {
     mab.clear();
     V.clear();
 
@@ -140,18 +140,21 @@ void Trie::printSuggestions(const string prefix , int numofsug) {
 
     printAllWordsFromNode(node, prefix);
 
-    // sort(mab.begin(), mab.end(), [](const auto& a, const auto& b) {
-    //     return (a.second > b.second) || // Higher freq first
-    //            (a.second == b.second && a.first < b.first); // Then alphabetical
-    // });
+    if(!useBFS){
+    sort(mab.begin(), mab.end(), [useFreq](const auto& a, const auto& b) {
+        return (a.second > b.second && useFreq) || // Higher freq first
+               (a.second == b.second && a.first < b.first); // Then alphabetical
+    });
+    }
+    else{
 
-    sort(mab.begin(), mab.end(), [](const auto& a, const auto& b) {
-        if (a.second != b.second) return a.second > b.second;
+    sort(mab.begin(), mab.end(), [useFreq](const auto& a, const auto& b) {
+        if (a.second != b.second && useFreq) return a.second > b.second;
         if (a.first.length() != b.first.length()) // Preserve BFS length order
             return a.first.length() < b.first.length();
         return a.first < b.first; // Then alphabetical
     });
-
+    }
     for (int i = 0; i < min(numofsug, (int)mab.size()); i++) {
           V.push_back(mab[i].first);
     }

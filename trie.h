@@ -26,11 +26,8 @@ public:
     vector<pair<string, int>> mab;
     map<string ,int>allwards;
     vector<string> V;
-    //multimap<int, string>m;
     multimap<int,string> s;
-    // multimap<int, multimap<int,string>,greater<int>>m;
     map<string, int>autoo;
-    //queue <string> q;
     Node *root;
 
 public:
@@ -44,7 +41,7 @@ public:
     void autosave(string);
     bool contain(string);
     void printAllWordsFromNode(Node* node, string prefix);
-    void printSuggestions(const string prefix,int num=4);
+    void printSuggestions(const string prefix,int num=4,bool BFS=false,bool Freq=true);
 };
 
 
