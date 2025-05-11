@@ -152,7 +152,6 @@ void AutoCompleteApp::setupUI()
         searchDelayTimer->stop();  // Reset timer on new input
         searchDelayTimer->start();
     });
-
     QMenuBar *menuBar = new QMenuBar();
     QMenu *settingsMenu = menuBar->addMenu("Settings");
     QAction *prefsAction = settingsMenu->addAction("Preferences...");
@@ -165,11 +164,12 @@ void AutoCompleteApp::setupUI()
     this->setMenuBar(menuBar);
 }
 
-void AutoCompleteApp::onSettingsChanged(bool bfs, int maxSug, bool usefreq)
+void AutoCompleteApp::onSettingsChanged(bool bfs, int maxSug, bool usefreq, bool highlightFirst)
 {
     useBFS = bfs;
     maxSuggestions = maxSug;
     useFreq = usefreq;
+    highlight = highlightFirst;
     updateSuggestions();
 }
 void AutoCompleteApp::updateInputHeight()
@@ -355,6 +355,10 @@ void AutoCompleteApp::updateSuggestions() {
         layout->addStretch();
         showSuggestions();
     }
+    if(!suggestionButtons.isEmpty() && highlight) {
+        selectedIndex = 0;
+        updateSelection();
+    }
 }
 
 void AutoCompleteApp::replaceCurrentWord(const QString &replacement)
@@ -432,13 +436,16 @@ void AutoCompleteApp::closeEvent(QCloseEvent *event) {
     QPushButton *cancelButton = msgBox.addButton("Cancel", QMessageBox::RejectRole);
 
     msgBox.exec();  // عرض الحوار
+    QSettings settings;
 
     if (msgBox.clickedButton() == saveButton) {
         emit aboutToClose();  // إرسال إشارة الحفظ
         event->accept();      // إغلاق النافذة
+        settings.clear();
     }
     else if (msgBox.clickedButton() == discardButton) {
         event->accept();      // إغلاق بدون حفظ
+        settings.clear();
     }
     else {
         event->ignore();     // إلغاء الإغلاق

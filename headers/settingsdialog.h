@@ -15,7 +15,7 @@ public:
     void loadSettings();
     
 signals:
-    void settingsChanged(bool bfs, int maxSuggestions, bool useFreq);
+    void settingsChanged(bool bfs, int maxSuggestions, bool useFreq, bool highlightFirst);
 
 private slots:
     void onSaveClicked();
@@ -34,5 +34,6 @@ private:
     QSlider *maxSuggestionsSlider;
     QLabel *suggestionCountLabel;
     QCheckBox *freq;
+    QCheckBox *highlight;
     QSettings settings;
 };

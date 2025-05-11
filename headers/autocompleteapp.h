@@ -26,6 +26,7 @@ public:
     bool useBFS = false;
     int maxSuggestions = 4;
     bool useFreq = true;
+    bool highlight = true;
 
 signals:
     void aboutToClose();
@@ -48,7 +49,7 @@ private:
     QTimer *searchDelayTimer;
     bool isHoveringSuggestion;
 
-    void onSettingsChanged(bool bfs, int maxSug, bool usefreq);
+    void onSettingsChanged(bool bfs, int maxSug, bool usefreq, bool highlightFirst);
     void setupUI();
     void setupAutocomplete();
     void updateInputHeight();
