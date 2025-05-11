@@ -24,9 +24,9 @@ void SettingsDialog::setupUI() {
     QHBoxLayout *methodLayout = new QHBoxLayout();
     QLabel *methodLabel = new QLabel("Search Method:");
     searchMethodCombo = new QComboBox();
-    searchMethodCombo->addItem("BFS (Breadth-First Search)", QVariant(true));
-    searchMethodCombo->addItem("DFS (Depth-First Search)", QVariant(false));
-    searchMethodCombo->setToolTip("BFS: Suggests words by popularity\nDFS: Suggests words alphabetically");
+    searchMethodCombo->addItem("DFS (Depth-First Search)", QVariant(true));
+    searchMethodCombo->addItem("BFS (Breadth-First Search)", QVariant(false));
+    searchMethodCombo->setToolTip("DFS: Suggests words alphabetically\nBFS: Suggests words by popularity");
     freq = new QCheckBox("Use Frequency Sorting");
     freq->setToolTip("Prioritize suggestions based on word usage frequency");
     
@@ -85,7 +85,7 @@ void SettingsDialog::setupUI() {
 void SettingsDialog::loadSettings() {
     bool useFrequency = settings.value("Search/UseFrequency", true).toBool();
     freq->setChecked(useFrequency);
-    bool bfs = settings.value("Search/BFS", true).toBool();
+    bool bfs = settings.value("Search/BFS", false).toBool();
     int maxSuggestions = settings.value("Suggestions/Max", 4).toInt();
     
     searchMethodCombo->setCurrentIndex(bfs ? 0 : 1);
