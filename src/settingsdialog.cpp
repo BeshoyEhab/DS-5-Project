@@ -11,10 +11,7 @@ SettingsDialog::SettingsDialog(Trie* t,QWidget *parent)
 {
     setWindowTitle("Preferences");
     setupUI();
-    searchMethodCombo->setCurrentIndex(0);
-    maxSuggestionsSlider->setValue(4);
-    freq->setChecked(true);
-    suggestionCountLabel->setText("4");
+    loadSettings();
 }
 
 void SettingsDialog::setupUI() {
@@ -84,15 +81,19 @@ void SettingsDialog::setupUI() {
 
 void SettingsDialog::loadSettings() {
     bool useFrequency = settings.value("Search/UseFrequency", true).toBool();
-    freq->setChecked(useFrequency);
     bool bfs = settings.value("Search/BFS", false).toBool();
     int maxSuggestions = settings.value("Suggestions/Max", 4).toInt();
     
+    freq->setChecked(useFrequency);
     searchMethodCombo->setCurrentIndex(bfs ? 1 : 0);
     maxSuggestionsSlider->setValue(maxSuggestions);
+    suggestionCountLabel->setText(QString::number(maxSuggestions));
 }
 
 void SettingsDialog::onSaveClicked() {
+    settings.setValue("Search/BFS", searchMethodCombo->currentData().toBool());
+    settings.setValue("Suggestions/Max", maxSuggestionsSlider->value());
+    settings.setValue("Search/UseFrequency", freq->isChecked());
     emit settingsChanged(searchMethodCombo->currentData().toBool(),
                          maxSuggestionsSlider->value(),
                          freq->isChecked());
