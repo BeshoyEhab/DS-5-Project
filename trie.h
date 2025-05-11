@@ -43,13 +43,6 @@ public:
     bool contain(string);
     void printAllWordsFromNode(Node* node, string prefix);
     void printSuggestions(const string prefix,int num=4);
-    void sortBFS(bool freq);
-    void sortDFS(bool freq);
-    void sortFreq();
-
-
-
-
 };
 
 
