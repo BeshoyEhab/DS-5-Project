@@ -22,13 +22,16 @@ using namespace std;
 
 
 
-AutoCompleteApp::AutoCompleteApp(Trie *r,QWidget *parent): QMainWindow(parent), selectedIndex(-1), isHoveringSuggestion(false)
+AutoCompleteApp::AutoCompleteApp(Trie *r, QWidget *parent)
+    : QMainWindow(parent)
+    , selectedIndex(-1)
+    , isHoveringSuggestion(false)
 {
-    t=r;
+    t = r;
 
     QString baseDir = QCoreApplication::applicationDirPath();
     QString srcPath = QDir(baseDir + "/../../src").absolutePath();
-    QFile styleFile(srcPath+"/Style.css");
+    QFile styleFile(srcPath + "/Style.css");
     if (styleFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QString styleSheet = QLatin1String(styleFile.readAll());
         setStyleSheet(styleSheet);
@@ -46,7 +49,6 @@ AutoCompleteApp::AutoCompleteApp(Trie *r,QWidget *parent): QMainWindow(parent), 
     searchDelayTimer->setSingleShot(true);
     searchDelayTimer->setInterval(50); // 50ms delay
     connect(searchDelayTimer, &QTimer::timeout, this, &AutoCompleteApp::updateSuggestions);
-
 }
 
 void AutoCompleteApp::keyPressEvent(QKeyEvent *event)
@@ -143,16 +145,20 @@ void AutoCompleteApp::setupUI()
     mainLayout->addStretch(1);
 
     // Update showSuggestions and hideSuggestions methods to handle the spacer
-    connect(this, &AutoCompleteApp::suggestionsVisibilityChanged,
-            suggestionsSpacer, &QWidget::setVisible);
+    connect(this,
+            &AutoCompleteApp::suggestionsVisibilityChanged,
+            suggestionsSpacer,
+            &QWidget::setVisible);
 
     setCentralWidget(centralWidget);
-    connect(inputField, &InputField::navigationKeyPressed,
-            this, &AutoCompleteApp::handleNavigationKeys);
+    connect(inputField,
+            &InputField::navigationKeyPressed,
+            this,
+            &AutoCompleteApp::handleNavigationKeys);
     // connect(inputField, &QTextEdit::textChanged,this, &AutoCompleteApp::updateUI);
     connect(inputField, &QTextEdit::textChanged, this, [this]() {
         updateInputHeight();
-        searchDelayTimer->stop();  // Reset timer on new input
+        searchDelayTimer->stop(); // Reset timer on new input
         searchDelayTimer->start();
     });
     QMenuBar *menuBar = new QMenuBar();
@@ -160,8 +166,7 @@ void AutoCompleteApp::setupUI()
     QAction *prefsAction = settingsMenu->addAction("Preferences...");
     connect(prefsAction, &QAction::triggered, [this]() {
         SettingsDialog dlg(t, this);
-        connect(&dlg, &SettingsDialog::settingsChanged,
-                this, &AutoCompleteApp::onSettingsChanged);
+        connect(&dlg, &SettingsDialog::settingsChanged, this, &AutoCompleteApp::onSettingsChanged);
         dlg.exec();
     });
     this->setMenuBar(menuBar);
@@ -191,7 +196,7 @@ QString AutoCompleteApp::getCurrentWord()
 void AutoCompleteApp::clearSelection()
 {
     selectedIndex = -1;
-    for(QPushButton *btn : suggestionButtons) {
+    for (QPushButton *btn : suggestionButtons) {
         btn->setProperty("selected", false);
         btn->style()->polish(btn);
     }
@@ -199,33 +204,37 @@ void AutoCompleteApp::clearSelection()
 
 void AutoCompleteApp::selectNext()
 {
-    if(suggestionButtons.isEmpty()) return;
+    if (suggestionButtons.isEmpty())
+        return;
     selectedIndex = (selectedIndex + 1) % suggestionButtons.size();
     updateSelection();
 }
 
 void AutoCompleteApp::selectPrevious()
 {
-    if(suggestionButtons.isEmpty()) return;
+    if (suggestionButtons.isEmpty())
+        return;
     selectedIndex = (selectedIndex - 1 + suggestionButtons.size()) % suggestionButtons.size();
     updateSelection();
 }
 
 void AutoCompleteApp::updateSelection()
 {
-    for(int i = 0; i < suggestionButtons.size(); i++) {
+    for (int i = 0; i < suggestionButtons.size(); i++) {
         bool selected = (i == selectedIndex);
-        suggestionButtons[i]->setStyleSheet(selected ?
-                                                "background-color:#e1e1e1; color:rgb(27, 27, 27) ; border-radius: 10px;" :
-                                                "background-color:#262626; color: rgba(255, 255, 255, 0.9); border-radius: 10px;"
-                                            );
+        suggestionButtons[i]->setStyleSheet(
+            selected ? "background-color:#e1e1e1; color:rgb(27, 27, 27) ; border-radius: 10px;"
+                     : "background-color:#262626; color: rgba(255, 255, 255, 0.9); border-radius: "
+                       "10px;");
     }
 }
 
 void AutoCompleteApp::activateSelected()
 {
-    if(selectedIndex >= 0 && selectedIndex < suggestionButtons.size()) {
+    if (selectedIndex >= 0 && selectedIndex < suggestionButtons.size()) {
+        qDebug() << selectedIndex << "\n";
         suggestionButtons[selectedIndex]->click();
+        qDebug() << "Ev\n";
     }
 }
 
@@ -247,7 +256,10 @@ void AutoCompleteApp::showSuggestions()
         fadeAnimation->setStartValue(0.0);
         fadeAnimation->setEndValue(1.150);
         fadeAnimation->setEasingCurve(QEasingCurve::OutCubic);
-        connect(fadeAnimation, &QPropertyAnimation::finished, fadeAnimation, &QPropertyAnimation::deleteLater);
+        connect(fadeAnimation,
+                &QPropertyAnimation::finished,
+                fadeAnimation,
+                &QPropertyAnimation::deleteLater);
         fadeAnimation->start();
     }
 }
@@ -256,9 +268,10 @@ void AutoCompleteApp::showSuggestions()
 
 
 QString currentWord;
-void AutoCompleteApp::updateSuggestions() {
-
-    if(!t) return;
+void AutoCompleteApp::updateSuggestions()
+{
+    if (!t)
+        return;
     clearSelection();
     suggestionButtons.clear();
     currentWord = getCurrentWord();
@@ -266,11 +279,11 @@ void AutoCompleteApp::updateSuggestions() {
     // fade out animation
     bool isInputEmpty = inputField->toPlainText().trimmed().isEmpty();
 
-    if(isInputEmpty) {
-
+    if (isInputEmpty) {
         if (suggestionContainer->isVisible()) {
-
-            QPropertyAnimation *fadeAnimation = new QPropertyAnimation(opacityEffect, "opacity", this);
+            QPropertyAnimation *fadeAnimation = new QPropertyAnimation(opacityEffect,
+                                                                       "opacity",
+                                                                       this);
 
             fadeAnimation->setDuration(200);
             fadeAnimation->setStartValue(opacityEffect->opacity());
@@ -288,9 +301,9 @@ void AutoCompleteApp::updateSuggestions() {
         return;
     }
 
-    if(currentWord.isEmpty()) {
+    if (currentWord.isEmpty()) {
         // Clear buttons but keep container visible
-        QLayoutItem* child;
+        QLayoutItem *child;
         while ((child = suggestionContainer->layout()->takeAt(0)) != nullptr) {
             delete child->widget();
             delete child;
@@ -301,7 +314,7 @@ void AutoCompleteApp::updateSuggestions() {
 
 
     // تنظيف الـ layout القديم
-    QLayoutItem* child;
+    QLayoutItem *child;
 
     while ((child = suggestionContainer->layout()->takeAt(0)) != nullptr) {
         delete child->widget();
@@ -316,36 +329,32 @@ void AutoCompleteApp::updateSuggestions() {
     t->printSuggestions(baseWord.toStdString(), maxSuggestions, useBFS, useFreq);
 
     vector<string> &sugs = t->V;
-    if (!(std::find(sugs.begin(), sugs.end(), currentWord.toStdString()) != sugs.end())){
+    if (!(std::find(sugs.begin(), sugs.end(), currentWord.toStdString()) != sugs.end())) {
         if (!sugs.empty())
             sugs.pop_back();
         sugs.insert(sugs.begin(), currentWord.toStdString());
     }
 
-    if(!sugs.empty()) {
+    if (!sugs.empty()) {
         // Calculate optimal grid layout
         int availableWidth = suggestionContainer->width() - 20; // Account for container margins
-        int maxButtonsPerRow = 4; // Default value
+        int maxButtonsPerRow = max(5, maxSuggestions/2); // Default value
 
         // Calculate maximum number of buttons to fit in a row
         // This will be adjusted based on available width and average button width
         const int avgButtonWidth = 120; // Average button width estimation
 
-        if (availableWidth > 0) {
-            maxButtonsPerRow = std::max(1, availableWidth / avgButtonWidth);
-        }
-
         int row = 0;
         int col = 0;
 
-        for(const auto &it : sugs) {
+        for (const auto &it : sugs) {
             QString suggestion = QString::fromStdString(it);
 
             QString displayText = suggestion;
 
-            if(capitalize) {
+            if (capitalize) {
                 displayText = suggestion.left(1).toUpper() + suggestion.mid(1).toLower();
-            } else if(allCaps) {
+            } else if (allCaps) {
                 displayText = suggestion.toUpper();
             } else {
                 displayText = suggestion.toLower();
@@ -360,7 +369,7 @@ void AutoCompleteApp::updateSuggestions() {
             QFontMetrics fm(btn->font());
             int textWidth = fm.horizontalAdvance(displayText);
             // Add padding (16px on each side from the stylesheet + 5px extra on each side)
-            int totalWidth = textWidth + 50;  // 16px + 5px padding on each side
+            int totalWidth = textWidth + 50; // 16px + 5px padding on each side
             btn->setMinimumWidth(totalWidth);
             btn->installEventFilter(this);
             connect(btn, &QPushButton::clicked, [this, displayText]() {
@@ -381,7 +390,7 @@ void AutoCompleteApp::updateSuggestions() {
 
         showSuggestions();
     }
-    if(!suggestionButtons.isEmpty() && highlight) {
+    if (!suggestionButtons.isEmpty() && highlight) {
         selectedIndex = 0;
         updateSelection();
     }
@@ -389,7 +398,11 @@ void AutoCompleteApp::updateSuggestions() {
 
 void AutoCompleteApp::replaceCurrentWord(const QString &replacement)
 {
-    t->increaseF(replacement.toLower().toStdString());
+    string text = replacement.toLower().toStdString();
+    if (t->contain(text))
+        t->increaseF(text);
+    else
+        t->add(text);
 
     QTextCursor cursor = inputField->textCursor();
     cursor.select(QTextCursor::WordUnderCursor);
@@ -401,11 +414,10 @@ void AutoCompleteApp::replaceCurrentWord(const QString &replacement)
 
 void AutoCompleteApp::handleNavigationKeys(QKeyEvent *event)
 {
-
-    switch(event->key()) {
+    switch (event->key()) {
     case Qt::Key_Tab:
         if (!suggestionButtons.isEmpty()) {
-            if(event->modifiers() & Qt::ShiftModifier) {
+            if (event->modifiers() & Qt::ShiftModifier) {
                 selectPrevious();
             } else {
                 selectNext();
@@ -418,7 +430,7 @@ void AutoCompleteApp::handleNavigationKeys(QKeyEvent *event)
 
         if (selectedIndex != -1 || isHoveringSuggestion && !currentWord.isEmpty()) {
             string wordLower = currentWord.toLower().toStdString();
-            activateSelected();
+            qDebug() << wordLower << "\n";
             event->accept();
         } else {
             string wordLower = currentWord.toLower().toStdString();
@@ -428,10 +440,8 @@ void AutoCompleteApp::handleNavigationKeys(QKeyEvent *event)
                 t->autosave(wordLower);
             }
             event->ignore(); // Allow normal Enter behavior
-
-            activateSelected();
-
         }
+        activateSelected();
         break;
     case Qt::Key_Colon:
     case Qt::Key_Comma:
