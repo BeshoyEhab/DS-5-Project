@@ -17,6 +17,7 @@
 #include <string>
 #include "vector"
 #include <QTimer>
+#include <QScrollArea>
 using namespace std;
 
 
@@ -94,10 +95,12 @@ void AutoCompleteApp::setupUI()
     suggestionContainer->setObjectName("suggestionContainer");
     suggestionContainer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
 
-    QHBoxLayout *suggestionsLayout = new QHBoxLayout(suggestionContainer);
-    suggestionsLayout->setContentsMargins(4, 4, 4, 4);
-    suggestionsLayout->setSpacing(4);
-    suggestionsLayout->setAlignment(Qt::AlignVCenter);
+    // Replace HBoxLayout with GridLayout for wrapping buttons
+    suggestionFlowLayout = new QGridLayout(suggestionContainer);
+    suggestionFlowLayout->setContentsMargins(10, 10, 10, 10);
+    suggestionFlowLayout->setHorizontalSpacing(8);
+    suggestionFlowLayout->setVerticalSpacing(8);
+    suggestionFlowLayout->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
 
     contentLayout->addWidget(suggestionContainer);
 
@@ -320,8 +323,20 @@ void AutoCompleteApp::updateSuggestions() {
     }
 
     if(!sugs.empty()) {
-        QHBoxLayout *layout = qobject_cast<QHBoxLayout*>(suggestionContainer->layout());
-        layout->addStretch();
+        // Calculate optimal grid layout
+        int availableWidth = suggestionContainer->width() - 20; // Account for container margins
+        int maxButtonsPerRow = 4; // Default value
+
+        // Calculate maximum number of buttons to fit in a row
+        // This will be adjusted based on available width and average button width
+        const int avgButtonWidth = 120; // Average button width estimation
+
+        if (availableWidth > 0) {
+            maxButtonsPerRow = std::max(1, availableWidth / avgButtonWidth);
+        }
+
+        int row = 0;
+        int col = 0;
 
         for(const auto &it : sugs) {
             QString suggestion = QString::fromStdString(it);
@@ -339,7 +354,7 @@ void AutoCompleteApp::updateSuggestions() {
             QPushButton *btn = new QPushButton(displayText);
             btn->setCursor(Qt::PointingHandCursor);
             btn->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-            btn->setMinimumHeight(26);
+            btn->setMinimumHeight(28);
 
             // Calculate the width needed for the text
             QFontMetrics fm(btn->font());
@@ -350,15 +365,20 @@ void AutoCompleteApp::updateSuggestions() {
             btn->installEventFilter(this);
             connect(btn, &QPushButton::clicked, [this, displayText]() {
                 replaceCurrentWord(displayText);
-
-
             });
 
-            layout->addWidget(btn);
+            // Add to grid layout with auto-wrapping
+            suggestionFlowLayout->addWidget(btn, row, col);
             suggestionButtons.append(btn);
+
+            // Update position for next button
+            col++;
+            if (col >= maxButtonsPerRow) {
+                col = 0;
+                row++;
+            }
         }
 
-        layout->addStretch();
         showSuggestions();
     }
     if(!suggestionButtons.isEmpty() && highlight) {
@@ -461,4 +481,3 @@ void AutoCompleteApp::closeEvent(QCloseEvent *event) {
         event->ignore();     // إلغاء الإغلاق
     }
 }
-

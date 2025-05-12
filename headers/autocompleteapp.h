@@ -10,9 +10,7 @@
 #include <QParallelAnimationGroup>
 #include <QTimer>
 #include "../trie.h"
-
-
-
+#include <QGridLayout>
 
 class InputField;
 class QLabel;
@@ -37,6 +35,7 @@ protected:
     void closeEvent(QCloseEvent *event) override;
 
 private:
+    QGridLayout *suggestionFlowLayout;
     InputField *inputField;
     QWidget *suggestionContainer;
     QList<QPushButton *> suggestionButtons;

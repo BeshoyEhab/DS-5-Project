@@ -49,7 +49,6 @@ QPushButton[selected="true"] {
     border-radius: 10px;
     background-color: #bcbcbc;
     border: 2px solid #151515;
-    font-weight:bold;
 }
 QLabel {
     color: #ffffff;
@@ -178,48 +177,46 @@ QDialog#settingsDialog QLineEdit {
 
 /*==========================*/
 
-/* ====== Force ComboBox Styling (Override System Theme) ====== */
+/* ===== ComboBox & Dropdown Styling ===== */
 QDialog#settingsDialog QComboBox {
-    background-color: #3d3d3d !important;
-    color: #ffffff !important;
-    border: 1px solid #5f5f5f !important;
-    border-radius: 8px !important;
-    padding: 5px 15px 5px 10px !important;
+    background-color: #3d3d3d;
+    color: #ffffff;
+    border: 1px solid #5f5f5f;
+    border-radius: 8px;
+    padding: 5px 15px 5px 10px;
 }
 
-/* Dropdown items list */
+/* Dropdown list container */
 QDialog#settingsDialog QComboBox QAbstractItemView {
-    background-color: #515151 !important;
-    color: #ffffff !important;
-    border: 1px solid #5f5f5f !important;
-    border-radius: 8px !important;
-    outline: 0 !important; /* Remove focus dotted border */
+    background-color: #515151;
+    color: #ffffff;
+    border: 1px solid #5f5f5f;
+    border-radius: 8px;  /* Container rounded corners */
+    margin: 4px;  /* Creates spacing for item radius */
 }
 
-/* Selected item highlight */
+/* Individual items */
+QDialog#settingsDialog QComboBox QAbstractItemView::item {
+    background-color: #515151;
+    color: #ffffff;
+    border-radius: 6px;
+    margin: 2px 4px;
+}
+
+/* Selected item */
 QDialog#settingsDialog QComboBox QAbstractItemView::item:selected {
-    background-color: #6b6b6b !important;
+    background-color: #6b6b6b;
+    border-radius: 6px;
 }
 
-/* Dropdown arrow button */
+/* Dropdown arrow section */
 QDialog#settingsDialog QComboBox::drop-down {
-    background-color: #3d3d3d !important; /* Match ComboBox background */
-    border-left: 1px solid #5f5f5f !important;
-    border-radius: 0 8px 8px 0 !important;
-    width: 25px !important;
+    subcontrol-origin: padding;
+    subcontrol-position: center right;
+    width: 25px;
+    border-left: 1px solid #5f5f5f;
+    border-radius: 0 8px 8px 0;
 }
-
-/* Arrow icon */
-QDialog#settingsDialog QComboBox::down-arrow {
-    width: 14px !important;
-    height: 14px !important;
-}
-
-/* Editable ComboBox (if applicable) */
-QDialog#settingsDialog QComboBox:editable {
-    background: #3d3d3d !important;
-}
-
 
 /*==========================*/
 
