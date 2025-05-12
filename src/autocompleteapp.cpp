@@ -232,9 +232,7 @@ void AutoCompleteApp::updateSelection()
 void AutoCompleteApp::activateSelected()
 {
     if (selectedIndex >= 0 && selectedIndex < suggestionButtons.size()) {
-        qDebug() << selectedIndex << "\n";
         suggestionButtons[selectedIndex]->click();
-        qDebug() << "Ev\n";
     }
 }
 
@@ -430,7 +428,6 @@ void AutoCompleteApp::handleNavigationKeys(QKeyEvent *event)
 
         if (selectedIndex != -1 || isHoveringSuggestion && !currentWord.isEmpty()) {
             string wordLower = currentWord.toLower().toStdString();
-            qDebug() << wordLower << "\n";
             event->accept();
         } else {
             string wordLower = currentWord.toLower().toStdString();
