@@ -310,8 +310,14 @@ void AutoCompleteApp::updateSuggestions() {
     bool capitalize = currentWord.length() > 0 && currentWord[0].isUpper();
     bool allCaps = currentWord == currentWord.toUpper();
 
-    t->printSuggestions(baseWord.toStdString(),maxSuggestions,useBFS,useFreq);
-    vector<string>& sugs = t->V;
+    t->printSuggestions(baseWord.toStdString(), maxSuggestions, useBFS, useFreq);
+
+    vector<string> &sugs = t->V;
+    if (!(std::find(sugs.begin(), sugs.end(), currentWord.toStdString()) != sugs.end())){
+        if (!sugs.empty())
+            sugs.pop_back();
+        sugs.insert(sugs.begin(), currentWord.toStdString());
+    }
 
     if(!sugs.empty()) {
         QHBoxLayout *layout = qobject_cast<QHBoxLayout*>(suggestionContainer->layout());
@@ -407,6 +413,10 @@ void AutoCompleteApp::handleNavigationKeys(QKeyEvent *event)
 
         }
         break;
+    case Qt::Key_Colon:
+    case Qt::Key_Comma:
+    case Qt::Key_Semicolon:
+    case Qt::Key_Period:
     case Qt::Key_Space:
         if (!currentWord.isEmpty()) {
             string wordLower = currentWord.toLower().toStdString();
@@ -431,8 +441,8 @@ void AutoCompleteApp::closeEvent(QCloseEvent *event) {
     msgBox.setText("Do you want to save before exiting?");
 
     // إضافة أزرار مخصصة
-    QPushButton *saveButton = msgBox.addButton("Save && Exit", QMessageBox::AcceptRole);
-    QPushButton *discardButton = msgBox.addButton("Exit Without Saving", QMessageBox::DestructiveRole);
+    QPushButton *saveButton = msgBox.addButton("Save", QMessageBox::AcceptRole);
+    QPushButton *discardButton = msgBox.addButton("Discard", QMessageBox::DestructiveRole);
     QPushButton *cancelButton = msgBox.addButton("Cancel", QMessageBox::RejectRole);
 
     msgBox.exec();  // عرض الحوار

@@ -5,11 +5,25 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QMessageBox>
+#include <QFile>
+#include <QDir>
+#include <QCoreApplication>
 
 SettingsDialog::SettingsDialog(Trie* t,QWidget *parent)
     : QDialog(parent), trie(t)
 {
     setWindowTitle("Preferences");
+
+    QString baseDir = QCoreApplication::applicationDirPath();
+    QString srcPath = QDir(baseDir + "/../../src").absolutePath();
+    QFile styleFile(srcPath+"/Style.css");
+    if (styleFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QString styleSheet = QLatin1String(styleFile.readAll());
+        setStyleSheet(styleSheet);
+        styleFile.close();
+    }
+    this->setObjectName("settingsDialog");
+
     setupUI();
     loadSettings();
 }
@@ -58,7 +72,9 @@ void SettingsDialog::setupUI() {
     wordInput->setPlaceholderText("Enter word");
 
     addButton = new QPushButton("Add Word");
+    addButton->setObjectName("AddButton");
     deleteButton = new QPushButton("Delete Word");
+    deleteButton->setObjectName("deleteButton");
 
     wordLayout->addWidget(wordInput);
     wordLayout->addWidget(addButton);
