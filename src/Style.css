@@ -178,12 +178,46 @@ QDialog#settingsDialog QLineEdit {
 
 /*==========================*/
 
+/* ====== Force ComboBox Styling (Override System Theme) ====== */
+QDialog#settingsDialog QComboBox {
+    background-color: #3d3d3d !important;
+    color: #ffffff !important;
+    border: 1px solid #5f5f5f !important;
+    border-radius: 8px !important;
+    padding: 5px 15px 5px 10px !important;
+}
+
+/* Dropdown items list */
 QDialog#settingsDialog QComboBox QAbstractItemView {
-    background-color: #000000;
-    color: #000000;
-    selection-background-color: #000000;
-    selection-color: #000000;
-    border: 1px solid #5f5f5f;
+    background-color: #515151 !important;
+    color: #ffffff !important;
+    border: 1px solid #5f5f5f !important;
+    border-radius: 8px !important;
+    outline: 0 !important; /* Remove focus dotted border */
+}
+
+/* Selected item highlight */
+QDialog#settingsDialog QComboBox QAbstractItemView::item:selected {
+    background-color: #6b6b6b !important;
+}
+
+/* Dropdown arrow button */
+QDialog#settingsDialog QComboBox::drop-down {
+    background-color: #3d3d3d !important; /* Match ComboBox background */
+    border-left: 1px solid #5f5f5f !important;
+    border-radius: 0 8px 8px 0 !important;
+    width: 25px !important;
+}
+
+/* Arrow icon */
+QDialog#settingsDialog QComboBox::down-arrow {
+    width: 14px !important;
+    height: 14px !important;
+}
+
+/* Editable ComboBox (if applicable) */
+QDialog#settingsDialog QComboBox:editable {
+    background: #3d3d3d !important;
 }
 
 
@@ -197,13 +231,13 @@ QDialog#settingsDialog QCheckBox {
 QDialog#settingsDialog QCheckBox::indicator:checked {
     background-color: #7dec4d;
     border: 1px solid #30363d;
-    border-radius: 12px;
+    border-radius: 7px;
 }
 
 QDialog#settingsDialog QCheckBox::indicator:unchecked {
     background-color: #ff3131;
     border: 1px solid #5f5f5f;
-    border-radius: 12px;
+    border-radius: 7px;
 }
 
 /*==========================*/
