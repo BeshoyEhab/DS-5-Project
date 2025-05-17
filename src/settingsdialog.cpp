@@ -31,7 +31,6 @@ SettingsDialog::SettingsDialog(Trie* t,QWidget *parent)
 void SettingsDialog::setupUI() {
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
 
-    // Search Method Selection
     QHBoxLayout *methodLayout = new QHBoxLayout();
     QLabel *methodLabel = new QLabel("Search Method:");
     searchMethodCombo = new QComboBox();
@@ -49,7 +48,6 @@ void SettingsDialog::setupUI() {
     mainLayout->addWidget(freq);
     mainLayout->addWidget(highlight);
 
-    // Suggestions Slider
     QHBoxLayout *sliderLayout = new QHBoxLayout();
     QLabel *sliderLabel = new QLabel("Max Suggestions:");
     sliderLabel->setProperty("sliderLabel", true);
@@ -82,7 +80,6 @@ void SettingsDialog::setupUI() {
 
     mainLayout->insertLayout(3, wordLayout);
 
-    // Buttons
     QHBoxLayout *buttonLayout = new QHBoxLayout();
     QPushButton *saveButton = new QPushButton("Save");
     QPushButton *resetButton = new QPushButton("Reset to Defaults");
@@ -141,7 +138,7 @@ void SettingsDialog::onAddClicked() {
         return;
     }
 
-    trie->add(word.toStdString());
+    trie->insert(word.toStdString());
     wordInput->clear();
 }
 

@@ -19,7 +19,7 @@ class AutoCompleteApp : public QMainWindow {
     Q_OBJECT
 
 public:
-    Trie* t  ;
+    Trie* trie;
     explicit AutoCompleteApp(Trie* t,QWidget *parent = nullptr);
     bool useBFS = false;
     int maxSuggestions = 4;

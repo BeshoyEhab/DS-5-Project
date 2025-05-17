@@ -14,17 +14,16 @@ using namespace std;
 
 DataModel::DataModel(){}
 
-bool DataModel::readJson(Trie* t) {
+bool DataModel::readJson(Trie* trie) {
     QString baseDir = QCoreApplication::applicationDirPath();
 
-    // قائمة بالمسارات المحتملة للملفات
     QStringList possibleAssetPaths = {
-        baseDir + "/assets",                  // للمجلد الرئيسي للبناء
-        baseDir + "/../assets",               // لمجلدات فرعية
-        baseDir + "/../../assets",            // لهياكل مجلدات أعمق
-        baseDir + "/../../../assets",         // لهياكل مجلدات أعمق جدًا
-        ":/assets",                           // لمصادر Qt
-        "assets"                              // للمجلد الحالي
+        baseDir + "/assets",
+        baseDir + "/../assets",
+        baseDir + "/../../assets",
+        baseDir + "/../../../assets",
+        ":/assets",
+        "assets"
     };
 
     QStringList fileNames = {"words.json", "words_dictionary.json"};
@@ -32,14 +31,13 @@ bool DataModel::readJson(Trie* t) {
     QFile file;
     QString foundPath;
 
-    // تجربة جميع التركيبات الممكنة للمسارات وأسماء الملفات
     for (const QString& assetPath : possibleAssetPaths) {
         for (const QString& fileName : fileNames) {
             QString fullPath = QDir(assetPath).absoluteFilePath(fileName);
-            qDebug() << "محاولة فتح الملف:" << fullPath;
+            qDebug() << "try to open file: " << fullPath;
             file.setFileName(fullPath);
             if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-                qDebug() << "تم فتح الملف بنجاح:" << fullPath;
+                qDebug() << "File open succesfully" << fullPath;
                 foundPath = fullPath;
                 break;
             }
@@ -48,7 +46,7 @@ bool DataModel::readJson(Trie* t) {
     }
 
     if (!file.isOpen()) {
-        qCritical() << "تعذر فتح أي ملف قاموس! المحاولات:";
+        qCritical() << "Can't open any file";
         for (const QString& assetPath : possibleAssetPaths) {
             for (const QString& fileName : fileNames) {
                 qCritical() << " - " << QDir(assetPath).absoluteFilePath(fileName);
@@ -56,8 +54,6 @@ bool DataModel::readJson(Trie* t) {
         }
         return false;
     }
-
-    // باقي كود تحليل JSON...
 
 
     QByteArray jsonData = file.readAll();
@@ -76,30 +72,19 @@ bool DataModel::readJson(Trie* t) {
         return false;
     }
 
-    words.clear();
-
     QJsonObject obj = doc.object();
     for (auto it = obj.begin(); it != obj.end(); ++it) {
         if (it.value().isDouble())  {
-            words[it.key().toStdString()] = it.value().toInt();
+            trie->insert(it.key().toStdString(), it.value().toInt());
         } else {
             qWarning() << "Skipping key" << it.key() << "with non-integer value.";
         }
     }
-
-
-
-    for (auto it = words.begin(); it != words.end(); ++it) {
-        t->insert(it->first,it->second);
-    }
-
-
-
     return true;
 }
 
 
-bool DataModel::saveJson(Trie* t) {
+bool DataModel::saveJson(Trie* trie) {
     QString baseDir = QCoreApplication::applicationDirPath();
     QString assetDirPath = baseDir + "/../../assets";
     QDir assetDir(assetDirPath);
@@ -117,12 +102,11 @@ bool DataModel::saveJson(Trie* t) {
         return false;
     }
 
-    // ابدأ بكتابة الملف يدوياً بدون تحميل كل البيانات في الذاكرة
     tempFile.write("{\n");
 
     int counter = 0;
     bool firstEntry = true;
-    for (const auto& [key, value] : t->allwards) {
+    for (const auto& [key, value] : trie->allwards) {
         if (!firstEntry) {
             tempFile.write(",\n");
         }
@@ -134,14 +118,12 @@ bool DataModel::saveJson(Trie* t) {
         counter++;
         if (counter % 10000 == 0) {
             QCoreApplication::processEvents();
-            qDebug() << "Processed" << counter << "words...";
         }
     }
 
     tempFile.write("\n}");
     tempFile.close();
 
-    // استبدال الملف القديم
     QString finalFilePath = assetDir.filePath("words.json");
     if (QFile::exists(finalFilePath) && !QFile::remove(finalFilePath)) {
         qCritical() << "Failed to remove old file";
@@ -153,6 +135,5 @@ bool DataModel::saveJson(Trie* t) {
         return false;
     }
 
-    qDebug() << "File successfully saved with" << counter << "words";
     return true;
 }

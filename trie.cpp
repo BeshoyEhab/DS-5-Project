@@ -12,15 +12,10 @@ Node::Node()
     freq = 0;
 }
 
-
-
-
-
 Trie::Trie() {
     root = new Node();
-    autoo.clear();
+    autoSaveMap.clear();
 }
-
 
 void Trie::insert(string s, int f) {
     Node* node = root;
@@ -34,8 +29,7 @@ void Trie::insert(string s, int f) {
     allwards.insert(make_pair(s,f));
 }
 
-
-void Trie::increaseF(string s) {
+void Trie::increaseFrequency(string s) {
     Node* node = root;
     for (char c : s) {
         node = node->child[c];
@@ -48,20 +42,13 @@ void Trie::increaseF(string s) {
 }
 
 void Trie::autosave(string s) {
-    autoo[s]++;
+    autoSaveMap[s]++;
 
-    if (autoo[s] == 3) {
+    if (autoSaveMap[s] == 3) {
         insert(s, 3);
         cout << "new word saved " << s << endl;
     }
 }
-
-
-void Trie::add(string s) {
-    if(!contain(s))
-        insert(s,1);
-}
-
 
 bool Trie::remove(string s) {
 
@@ -77,10 +64,6 @@ bool Trie::remove(string s) {
     else
         return false;
 }
-
-
-
-
 
 bool Trie::contain(string s) {
     Node* node = root;
@@ -105,27 +88,22 @@ void Trie:: allWords(Node* node, string currentWord, map<string,int> words) {
 }
 
 
-void Trie:: printAllWordsFromNode(Node* node, string prefix) {
+void Trie::generateAllWordsFromNode(Node* node, string prefix) {
 
 
     if (node->freq>0) {
-        //ابجدىDfs
-        mab.push_back({prefix, node->freq}); //equivalent to make_pair(node->freq, prefix)
-        // q.push(prefix);
-        // m.insert(make_pair(node->path, prefix));
-
-
+        sortedWords.push_back({prefix, node->freq});
     }
     for (auto& pair : node->child) {
-        printAllWordsFromNode(pair.second, prefix + pair.first);
+        generateAllWordsFromNode(pair.second, prefix + pair.first);
     }
 
 
 }
 
-void Trie::printSuggestions(const string prefix , int numofsug,bool useBFS,bool useFreq) {
-    mab.clear();
-    V.clear();
+void Trie::generateSuggestions(const string prefix , int numofsug,bool useBFS,bool useFreq) {
+    sortedWords.clear();
+    suggestionsVector.clear();
 
     Node* node = root;
     for (int i = 0; i < prefix.size(); i++) {
@@ -138,24 +116,24 @@ void Trie::printSuggestions(const string prefix , int numofsug,bool useBFS,bool 
         }
     }
 
-    printAllWordsFromNode(node, prefix);
+    generateAllWordsFromNode(node, prefix);
 
     if(!useBFS){
-    sort(mab.begin(), mab.end(), [useFreq](const auto& a, const auto& b) {
-        return (a.second > b.second && useFreq) || // Higher freq first
-               (a.second == b.second && a.first < b.first); // Then alphabetical
+    sort(sortedWords.begin(), sortedWords.end(), [useFreq](const auto& a, const auto& b) {
+        return (a.second > b.second && useFreq) ||
+               (a.first < b.first);
     });
     }
     else{
 
-    sort(mab.begin(), mab.end(), [useFreq](const auto& a, const auto& b) {
+    sort(sortedWords.begin(), sortedWords.end(), [useFreq](const auto& a, const auto& b) {
         if (a.second != b.second && useFreq) return a.second > b.second;
-        if (a.first.length() != b.first.length()) // Preserve BFS length order
+        if (a.first.length() != b.first.length())
             return a.first.length() < b.first.length();
-        return a.first < b.first; // Then alphabetical
+        return a.first < b.first;
     });
     }
-    for (int i = 0; i < min(numofsug, (int)mab.size()); i++) {
-          V.push_back(mab[i].first);
+    for (int i = 0; i < min(numofsug, (int)sortedWords.size()); i++) {
+          suggestionsVector.push_back(sortedWords[i].first);
     }
 }

@@ -1,5 +1,5 @@
-#include "../headers/autocompleteapp.h"
-#include "../headers/inputfield.h"
+#include "autocompleteapp.h"
+#include "inputfield.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -20,14 +20,12 @@
 #include <QScrollArea>
 using namespace std;
 
-
-
-AutoCompleteApp::AutoCompleteApp(Trie *r, QWidget *parent)
+AutoCompleteApp::AutoCompleteApp(Trie *t, QWidget *parent)
     : QMainWindow(parent)
     , selectedIndex(-1)
     , isHoveringSuggestion(false)
 {
-    t = r;
+    trie = t;
 
     QString baseDir = QCoreApplication::applicationDirPath();
     QString srcPath = QDir(baseDir + "/../../src").absolutePath();
@@ -40,14 +38,13 @@ AutoCompleteApp::AutoCompleteApp(Trie *r, QWidget *parent)
 
 
     setupUI();
-    //setupAutocomplete();
     resize(800, 600);
     setWindowTitle("Fast Writer Pro");
 
     // Initialize timer
     searchDelayTimer = new QTimer(this);
     searchDelayTimer->setSingleShot(true);
-    searchDelayTimer->setInterval(50); // 50ms delay
+    searchDelayTimer->setInterval(50);
     connect(searchDelayTimer, &QTimer::timeout, this, &AutoCompleteApp::updateSuggestions);
 }
 
@@ -64,10 +61,7 @@ void AutoCompleteApp::setupUI()
     mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->setSpacing(0);
 
-    // Add stretch to push content to vertical center
     mainLayout->addStretch(1);
-
-    // Main content container (input + suggestions)
     QWidget *contentWidget = new QWidget();
     contentWidget->setObjectName("inputContainer");
     QVBoxLayout *contentLayout = new QVBoxLayout(contentWidget);
@@ -80,24 +74,20 @@ void AutoCompleteApp::setupUI()
     contentLayout->addWidget(titleLabel);
     contentLayout->addSpacing(20);
 
-    // Create a container for suggestions that's always present
     QWidget *suggestionsWrapper = new QWidget();
     QVBoxLayout *suggestionsWrapperLayout = new QVBoxLayout(suggestionsWrapper);
     suggestionsWrapperLayout->setContentsMargins(0, 0, 0, 0);
     suggestionsWrapperLayout->setSpacing(0);
 
-    // Create a fixed-size spacer widget to reserve space for suggestions
     QWidget *suggestionsSpacer = new QWidget();
-    suggestionsSpacer->setFixedHeight(36); // Same height as suggestion container
+    suggestionsSpacer->setFixedHeight(36);
     suggestionsSpacer->setVisible(false);
     suggestionsWrapperLayout->addWidget(suggestionsSpacer);
 
-    // Suggestions Container with animation setup
     suggestionContainer = new QWidget();
     suggestionContainer->setObjectName("suggestionContainer");
     suggestionContainer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
 
-    // Replace HBoxLayout with GridLayout for wrapping buttons
     suggestionFlowLayout = new QGridLayout(suggestionContainer);
     suggestionFlowLayout->setContentsMargins(10, 10, 10, 10);
     suggestionFlowLayout->setHorizontalSpacing(8);
@@ -106,34 +96,26 @@ void AutoCompleteApp::setupUI()
 
     contentLayout->addWidget(suggestionContainer);
 
-    // Setup opacity effect
     opacityEffect = new QGraphicsOpacityEffect(suggestionContainer);
     opacityEffect->setOpacity(0.0);
     suggestionContainer->setGraphicsEffect(opacityEffect);
 
-    // Setup slide animation
     slideAnimation = new QPropertyAnimation(suggestionContainer, "pos");
     slideAnimation->setDuration(150);
 
-    // Initialize animation group pointer
     currentAnimGroup = nullptr;
 
-    // Add suggestion container to wrapper
     suggestionsWrapperLayout->addWidget(suggestionContainer);
 
-    // Input Field
     inputField = new InputField();
     inputField->setObjectName("inputField");
     inputField->setPlaceholderText("Start typing Here");
 
-    // Create the main content stack in correct order
     contentLayout->addWidget(suggestionsWrapper);
     contentLayout->addWidget(inputField);
 
-    // Hide suggestions initially
     suggestionContainer->hide();
 
-    // Center the content widget horizontally
     QHBoxLayout *horizontalWrapper = new QHBoxLayout();
     horizontalWrapper->addStretch();
     horizontalWrapper->addWidget(contentWidget, 8);
@@ -141,10 +123,8 @@ void AutoCompleteApp::setupUI()
 
     mainLayout->addLayout(horizontalWrapper);
 
-    // Add stretch after content for vertical centering
     mainLayout->addStretch(1);
 
-    // Update showSuggestions and hideSuggestions methods to handle the spacer
     connect(this,
             &AutoCompleteApp::suggestionsVisibilityChanged,
             suggestionsSpacer,
@@ -155,17 +135,16 @@ void AutoCompleteApp::setupUI()
             &InputField::navigationKeyPressed,
             this,
             &AutoCompleteApp::handleNavigationKeys);
-    // connect(inputField, &QTextEdit::textChanged,this, &AutoCompleteApp::updateUI);
     connect(inputField, &QTextEdit::textChanged, this, [this]() {
         updateInputHeight();
-        searchDelayTimer->stop(); // Reset timer on new input
+        searchDelayTimer->stop();
         searchDelayTimer->start();
     });
     QMenuBar *menuBar = new QMenuBar();
     QMenu *settingsMenu = menuBar->addMenu("Settings");
     QAction *prefsAction = settingsMenu->addAction("Preferences...");
     connect(prefsAction, &QAction::triggered, [this]() {
-        SettingsDialog dlg(t, this);
+        SettingsDialog dlg(trie, this);
         connect(&dlg, &SettingsDialog::settingsChanged, this, &AutoCompleteApp::onSettingsChanged);
         dlg.exec();
     });
@@ -268,13 +247,12 @@ void AutoCompleteApp::showSuggestions()
 QString currentWord;
 void AutoCompleteApp::updateSuggestions()
 {
-    if (!t)
+    if (!trie)
         return;
     clearSelection();
     suggestionButtons.clear();
     currentWord = getCurrentWord();
 
-    // fade out animation
     bool isInputEmpty = inputField->toPlainText().trimmed().isEmpty();
 
     if (isInputEmpty) {
@@ -300,18 +278,14 @@ void AutoCompleteApp::updateSuggestions()
     }
 
     if (currentWord.isEmpty()) {
-        // Clear buttons but keep container visible
         QLayoutItem *child;
         while ((child = suggestionContainer->layout()->takeAt(0)) != nullptr) {
             delete child->widget();
             delete child;
         }
-        return; // Exit early - no need to process empty word
+        return;
     }
 
-
-
-    // تنظيف الـ layout القديم
     QLayoutItem *child;
 
     while ((child = suggestionContainer->layout()->takeAt(0)) != nullptr) {
@@ -324,9 +298,9 @@ void AutoCompleteApp::updateSuggestions()
     bool capitalize = currentWord.length() > 0 && currentWord[0].isUpper();
     bool allCaps = currentWord == currentWord.toUpper();
 
-    t->printSuggestions(baseWord.toStdString(), maxSuggestions, useBFS, useFreq);
+    trie->generateSuggestions(baseWord.toStdString(), maxSuggestions, useBFS, useFreq);
 
-    vector<string> &sugs = t->V;
+    vector<string> &sugs = trie->suggestionsVector;
     if (!(std::find(sugs.begin(), sugs.end(), currentWord.toStdString()) != sugs.end())) {
         if (!sugs.empty())
             sugs.pop_back();
@@ -334,13 +308,10 @@ void AutoCompleteApp::updateSuggestions()
     }
 
     if (!sugs.empty()) {
-        // Calculate optimal grid layout
-        int availableWidth = suggestionContainer->width() - 20; // Account for container margins
-        int maxButtonsPerRow = max(5, maxSuggestions/2); // Default value
+        int availableWidth = suggestionContainer->width() - 20;
+        int maxButtonsPerRow = max(5, maxSuggestions/2);
 
-        // Calculate maximum number of buttons to fit in a row
-        // This will be adjusted based on available width and average button width
-        const int avgButtonWidth = 120; // Average button width estimation
+        const int avgButtonWidth = 120;
 
         int row = 0;
         int col = 0;
@@ -363,22 +334,18 @@ void AutoCompleteApp::updateSuggestions()
             btn->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
             btn->setMinimumHeight(28);
 
-            // Calculate the width needed for the text
             QFontMetrics fm(btn->font());
             int textWidth = fm.horizontalAdvance(displayText);
-            // Add padding (16px on each side from the stylesheet + 5px extra on each side)
-            int totalWidth = textWidth + 50; // 16px + 5px padding on each side
+            int totalWidth = textWidth + 50;
             btn->setMinimumWidth(totalWidth);
             btn->installEventFilter(this);
             connect(btn, &QPushButton::clicked, [this, displayText]() {
                 replaceCurrentWord(displayText);
             });
 
-            // Add to grid layout with auto-wrapping
             suggestionFlowLayout->addWidget(btn, row, col);
             suggestionButtons.append(btn);
 
-            // Update position for next button
             col++;
             if (col >= maxButtonsPerRow) {
                 col = 0;
@@ -397,10 +364,10 @@ void AutoCompleteApp::updateSuggestions()
 void AutoCompleteApp::replaceCurrentWord(const QString &replacement)
 {
     string text = replacement.toLower().toStdString();
-    if (t->contain(text))
-        t->increaseF(text);
+    if (trie->contain(text))
+        trie->increaseFrequency(text);
     else
-        t->add(text);
+        trie->insert(text);
 
     QTextCursor cursor = inputField->textCursor();
     cursor.select(QTextCursor::WordUnderCursor);
@@ -431,12 +398,12 @@ void AutoCompleteApp::handleNavigationKeys(QKeyEvent *event)
             event->accept();
         } else {
             string wordLower = currentWord.toLower().toStdString();
-            if (t->contain(wordLower)) {
-                t->increaseF(wordLower);
+            if (trie->contain(wordLower)) {
+                trie->increaseFrequency(wordLower);
             } else {
-                t->autosave(wordLower);
+                trie->autosave(wordLower);
             }
-            event->ignore(); // Allow normal Enter behavior
+            event->ignore();
         }
         activateSelected();
         break;
@@ -447,10 +414,10 @@ void AutoCompleteApp::handleNavigationKeys(QKeyEvent *event)
     case Qt::Key_Space:
         if (!currentWord.isEmpty()) {
             string wordLower = currentWord.toLower().toStdString();
-            if (t->contain(wordLower)) {
-                t->increaseF(wordLower);
+            if (trie->contain(wordLower)) {
+                trie->increaseFrequency(wordLower);
             } else {
-                t->autosave(wordLower);
+                trie->autosave(wordLower);
             }
         }
         event->accept();
@@ -462,29 +429,27 @@ void AutoCompleteApp::handleNavigationKeys(QKeyEvent *event)
 }
 
 void AutoCompleteApp::closeEvent(QCloseEvent *event) {
-    // إنشاء صندوق حوار التأكيد
     QMessageBox msgBox(this);
     msgBox.setWindowTitle("Exit Confirmation");
     msgBox.setText("Do you want to save before exiting?");
 
-    // إضافة أزرار مخصصة
     QPushButton *saveButton = msgBox.addButton("Save", QMessageBox::AcceptRole);
     QPushButton *discardButton = msgBox.addButton("Discard", QMessageBox::DestructiveRole);
     QPushButton *cancelButton = msgBox.addButton("Cancel", QMessageBox::RejectRole);
 
-    msgBox.exec();  // عرض الحوار
+    msgBox.exec();
     QSettings settings;
 
     if (msgBox.clickedButton() == saveButton) {
-        emit aboutToClose();  // إرسال إشارة الحفظ
-        event->accept();      // إغلاق النافذة
+        emit aboutToClose();
+        event->accept();
         settings.clear();
     }
     else if (msgBox.clickedButton() == discardButton) {
-        event->accept();      // إغلاق بدون حفظ
+        event->accept();
         settings.clear();
     }
     else {
-        event->ignore();     // إلغاء الإغلاق
+        event->ignore();
     }
 }

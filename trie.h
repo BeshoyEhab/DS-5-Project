@@ -7,7 +7,6 @@
 
 using namespace std;
 
-
 class Node
 {
 public:
@@ -20,32 +19,21 @@ public:
 class Trie
 {
 public:
-
-    vector<pair<string, int>> mab;
+    vector<pair<string, int>> sortedWords;
     map<string ,int>allwards;
-    vector<string> V;
-    multimap<int,string> s;
-    map<string, int>autoo;
+    vector<string> suggestionsVector;
+    map<string, int>autoSaveMap;
     Node *root;
-
-public:
     Trie();
     void allWords(Node* node, string currentWord, map<string,int> words);
     vector<string> getAllWords();
-    void insert(string,int);
-    void add(string);
+    void insert(string,int f = 1);
     bool remove(string);
-    void increaseF(string);
+    void increaseFrequency(string);
     void autosave(string);
     bool contain(string);
-    void printAllWordsFromNode(Node* node, string prefix);
-    void printSuggestions(const string prefix,int num=4,bool BFS=false,bool Freq=true);
+    void generateAllWordsFromNode(Node* node, string prefix);
+    void generateSuggestions(const string prefix,int num=4,bool BFS=false,bool Freq=true);
 };
-
-
-
-
-
-
 
 #endif
