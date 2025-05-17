@@ -28,8 +28,8 @@ AutoCompleteApp::AutoCompleteApp(Trie *t, QWidget *parent)
     trie = t;
 
     QString baseDir = QCoreApplication::applicationDirPath();
-    QString srcPath = QDir(baseDir + "/../../src").absolutePath();
-    QFile styleFile(srcPath + "/Style.css");
+    QString stylePath = QDir(baseDir + "/../../src/Style.css").absolutePath();
+    QFile styleFile(stylePath);
     if (styleFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QString styleSheet = QLatin1String(styleFile.readAll());
         setStyleSheet(styleSheet);
@@ -241,9 +241,6 @@ void AutoCompleteApp::showSuggestions()
     }
 }
 
-
-
-
 QString currentWord;
 void AutoCompleteApp::updateSuggestions()
 {
@@ -292,7 +289,6 @@ void AutoCompleteApp::updateSuggestions()
         delete child->widget();
         delete child;
     }
-
 
     QString baseWord = currentWord.toLower();
     bool capitalize = currentWord.length() > 0 && currentWord[0].isUpper();

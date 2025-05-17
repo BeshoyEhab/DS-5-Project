@@ -37,7 +37,7 @@ void Trie::increaseFrequency(string s) {
     if (node->freq > 0) {
         node->freq++;
         allwards[s]++;
-        cout << " frequancy increased  " << s << " to " << node->freq << endl;
+        cout << "frequancy increased  " << s << " to " << node->freq << endl;
     }
 }
 
@@ -76,18 +76,6 @@ bool Trie::contain(string s) {
     return (node->freq > 0);
 }
 
-
-void Trie:: allWords(Node* node, string currentWord, map<string,int> words) {
-    if (node->freq>0) {
-        words.insert(make_pair(currentWord,node->freq));
-    }
-
-    for (auto& pair : node->child) {
-        allWords(pair.second, currentWord + pair.first, words);
-    }
-}
-
-
 void Trie::generateAllWordsFromNode(Node* node, string prefix) {
 
 
@@ -95,10 +83,9 @@ void Trie::generateAllWordsFromNode(Node* node, string prefix) {
         sortedWords.push_back({prefix, node->freq});
     }
     for (auto& pair : node->child) {
-        generateAllWordsFromNode(pair.second, prefix + pair.first);
+        if (pair.second)
+            generateAllWordsFromNode(pair.second, prefix + pair.first);
     }
-
-
 }
 
 void Trie::generateSuggestions(const string prefix , int numofsug,bool useBFS,bool useFreq) {
@@ -119,13 +106,14 @@ void Trie::generateSuggestions(const string prefix , int numofsug,bool useBFS,bo
     generateAllWordsFromNode(node, prefix);
 
     if(!useBFS){
-    sort(sortedWords.begin(), sortedWords.end(), [useFreq](const auto& a, const auto& b) {
-        return (a.second > b.second && useFreq) ||
-               (a.first < b.first);
+        sort(sortedWords.begin(), sortedWords.end(), [useFreq](const auto &a, const auto &b) {
+            if (useFreq)
+                return (a.second > b.second);
+            else
+                return (a.first < b.first);
     });
     }
     else{
-
     sort(sortedWords.begin(), sortedWords.end(), [useFreq](const auto& a, const auto& b) {
         if (a.second != b.second && useFreq) return a.second > b.second;
         if (a.first.length() != b.first.length())

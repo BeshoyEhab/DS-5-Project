@@ -24,9 +24,8 @@ public:
     vector<string> suggestionsVector;
     map<string, int>autoSaveMap;
     Node *root;
+
     Trie();
-    void allWords(Node* node, string currentWord, map<string,int> words);
-    vector<string> getAllWords();
     void insert(string,int f = 1);
     bool remove(string);
     void increaseFrequency(string);
