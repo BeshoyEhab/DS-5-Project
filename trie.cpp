@@ -3,6 +3,7 @@
 #include <map>
 #include <algorithm>
 #include <string>
+#include <iostream>
 
 using namespace std;
 
@@ -14,7 +15,6 @@ Node::Node()
 
 Trie::Trie() {
     root = new Node();
-    autoSaveMap.clear();
 }
 
 void Trie::insert(string s, int f) {
@@ -25,7 +25,7 @@ void Trie::insert(string s, int f) {
         }
         node = node->child[c];
     }
-    node->freq = f;
+    node->freq = f+1;
     allwards.insert(make_pair(s,f));
 }
 
@@ -53,16 +53,13 @@ void Trie::autosave(string s) {
 bool Trie::remove(string s) {
 
     Node* node = root;
-    if(contain(s))
-    {
-    for (char c : s) {
-        node = node->child[c];
-    }
-    node->freq =0;
-        return true;
-    }
-    else
+    if (!contain(s))
         return false;
+    for (char c : s)
+        node = node->child[c];
+    node->freq = 0;
+    allwards.erase(s);
+    return true;
 }
 
 bool Trie::contain(string s) {
@@ -79,7 +76,7 @@ bool Trie::contain(string s) {
 void Trie::generateAllWordsFromNode(Node* node, string prefix) {
 
 
-    if (node->freq>0) {
+    if (node->freq > 1) {
         sortedWords.push_back({prefix, node->freq});
     }
     for (auto& pair : node->child) {

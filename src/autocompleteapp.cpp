@@ -298,7 +298,7 @@ void AutoCompleteApp::updateSuggestions()
 
     vector<string> &sugs = trie->suggestionsVector;
     if (!(std::find(sugs.begin(), sugs.end(), currentWord.toStdString()) != sugs.end())) {
-        if (!sugs.empty())
+        if (maxSuggestions == sugs.size() && !sugs.empty())
             sugs.pop_back();
         sugs.insert(sugs.begin(), currentWord.toStdString());
     }

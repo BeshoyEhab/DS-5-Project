@@ -14,6 +14,7 @@ int main(int argc, char *argv[]) {
     Trie* t = new Trie();
     dataModel->readJson(t);
 
+
     AutoCompleteApp window(t);
     window.show();
 
