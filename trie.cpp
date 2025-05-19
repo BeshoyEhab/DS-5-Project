@@ -10,7 +10,7 @@ using namespace std;
 
 Node::Node()
 {
-    freq = 0;
+    freq = -1;
 }
 
 Trie::Trie() {
@@ -25,7 +25,7 @@ void Trie::insert(string s, int f) {
         }
         node = node->child[c];
     }
-    node->freq = f+1;
+    node->freq = f;
     allwards.insert(make_pair(s,f));
 }
 
@@ -34,7 +34,7 @@ void Trie::increaseFrequency(string s) {
     for (char c : s) {
         node = node->child[c];
     }
-    if (node->freq > 0) {
+    if (node->freq >= 0) {
         node->freq++;
         allwards[s]++;
         cout << "frequancy increased  " << s << " to " << node->freq << endl;
@@ -70,13 +70,13 @@ bool Trie::contain(string s) {
         }
         node = node->child[c];
     }
-    return (node->freq > 0);
+    return (node->freq >= 0);
 }
 
 void Trie::generateAllWordsFromNode(Node* node, string prefix) {
 
 
-    if (node->freq > 1) {
+    if (node->freq > 0) {
         sortedWords.push_back({prefix, node->freq});
     }
     for (auto& pair : node->child) {
