@@ -26,18 +26,21 @@ bool DataModel::readJson(Trie* trie) {
         "assets"
     };
 
-    QStringList fileNames = {"words.json", "words_dictionary.json"};
+    QStringList jsonFileNames = {"words.json", "words_dictionary.json"};
+    QStringList txtFileNames = {"Dictionary.txt", "words.txt"};
 
     QFile file;
     QString foundPath;
+    bool convertedFromTxt = false;
 
+    // First try to find and open JSON file
     for (const QString& assetPath : possibleAssetPaths) {
-        for (const QString& fileName : fileNames) {
+        for (const QString& fileName : jsonFileNames) {
             QString fullPath = QDir(assetPath).absoluteFilePath(fileName);
-            qDebug() << "try to open file: " << fullPath;
+            qDebug() << "Trying JSON file:" << fullPath;
             file.setFileName(fullPath);
             if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-                qDebug() << "File open succesfully" << fullPath;
+                qDebug() << "Opened JSON file:" << fullPath;
                 foundPath = fullPath;
                 break;
             }
@@ -45,16 +48,45 @@ bool DataModel::readJson(Trie* trie) {
         if (file.isOpen()) break;
     }
 
+    // If JSON not found, try to find and convert TXT file
     if (!file.isOpen()) {
-        qCritical() << "Can't open any file";
+        qDebug() << "No JSON found, searching for TXT files...";
+        QString foundTxtPath;
+
+        // Search for TXT files
         for (const QString& assetPath : possibleAssetPaths) {
-            for (const QString& fileName : fileNames) {
-                qCritical() << " - " << QDir(assetPath).absoluteFilePath(fileName);
+            for (const QString& fileName : txtFileNames) {
+                QString fullPath = QDir(assetPath).absoluteFilePath(fileName);
+                qDebug() << "Checking for TXT file:" << fullPath;
+                if (QFile::exists(fullPath)) {
+                    foundTxtPath = fullPath;
+                    qDebug() << "Found TXT file at:" << foundTxtPath;
+
+                    // Convert TXT to JSON
+                    QString jsonPath = QDir(assetPath).absoluteFilePath(jsonFileNames.first());
+                    if (convertTxtToJson(foundTxtPath, jsonPath)) {
+                        qDebug() << "Successfully converted TXT to JSON";
+                        file.setFileName(jsonPath);
+                        if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                            foundPath = jsonPath;
+                            convertedFromTxt = true;
+                            break;
+                        }
+                    }
+                }
+                if (!foundTxtPath.isEmpty()) break;
             }
+            if (convertedFromTxt) break;
+        }
+    }
+
+    if (!file.isOpen()) {
+        qCritical() << "Failed to find or convert any data files";
+        for (const QString& assetPath : possibleAssetPaths) {
+            qCritical() << "Searched in:" << assetPath;
         }
         return false;
     }
-
 
     QByteArray jsonData = file.readAll();
     file.close();
@@ -80,9 +112,15 @@ bool DataModel::readJson(Trie* trie) {
             qWarning() << "Skipping key" << it.key() << "with non-integer value.";
         }
     }
+
+    if (convertedFromTxt) {
+        qDebug() << "Successfully loaded data from converted TXT file";
+    } else {
+        qDebug() << "Successfully loaded data from existing JSON file";
+    }
+
     return true;
 }
-
 
 bool DataModel::saveJson(Trie* trie) {
     QString baseDir = QCoreApplication::applicationDirPath();
@@ -135,5 +173,70 @@ bool DataModel::saveJson(Trie* trie) {
         return false;
     }
 
+    return true;
+}
+
+bool DataModel::convertTxtToJson(const QString& txtFilePath, const QString& jsonFilePath) {
+    QFile inputFile(txtFilePath);
+    if (!inputFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qCritical() << "Failed to open input file:" << txtFilePath;
+        return false;
+    }
+
+    QFileInfo outputInfo(jsonFilePath);
+    QDir outputDir = outputInfo.absoluteDir();
+    if (!outputDir.exists() && !outputDir.mkpath(".")) {
+        qCritical() << "Failed to create output directory:" << outputDir.path();
+        inputFile.close();
+        return false;
+    }
+
+    QFile outputFile(jsonFilePath);
+    if (!outputFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        qCritical() << "Failed to open output file:" << jsonFilePath;
+        inputFile.close();
+        return false;
+    }
+
+    QTextStream in(&inputFile);
+    QTextStream out(&outputFile);
+
+    out << "{\n";
+
+    bool firstLine = true;
+    while (!in.atEnd()) {
+        QString line = in.readLine().trimmed();
+        if (line.isEmpty()) continue;
+
+        QStringList parts = line.split(' ', Qt::SkipEmptyParts);
+        if (parts.size() < 2) {
+            qWarning() << "Skipping malformed line:" << line;
+            continue;
+        }
+
+        QString word = parts[0];
+        QString valueStr = parts[1];
+        bool ok;
+        int value = valueStr.toInt(&ok);
+
+        if (!ok) {
+            qWarning() << "Skipping line with invalid number:" << line;
+            continue;
+        }
+
+        if (!firstLine) {
+            out << ",\n";
+        }
+        firstLine = false;
+
+        out << "    \"" << word << "\": " << value;
+    }
+
+    out << "\n}\n";
+
+    inputFile.close();
+    outputFile.close();
+
+    qDebug() << "Successfully converted" << txtFilePath << "to" << jsonFilePath;
     return true;
 }
