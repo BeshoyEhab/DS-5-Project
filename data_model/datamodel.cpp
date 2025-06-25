@@ -26,7 +26,7 @@ bool DataModel::readJson(Trie* trie) {
         "assets"
     };
 
-    QStringList jsonFileNames = {"words.json", "words_dictionary.json"};
+    QStringList jsonFileNames = {"words_dictionary.json"};
     QStringList txtFileNames = {"Dictionary.txt", "words.txt"};
 
     QFile file;

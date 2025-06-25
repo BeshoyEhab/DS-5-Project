@@ -102,22 +102,14 @@ void Trie::generateSuggestions(const string prefix , int numofsug,bool useBFS,bo
 
     generateAllWordsFromNode(node, prefix);
 
-    if(!useBFS){
-        sort(sortedWords.begin(), sortedWords.end(), [useFreq](const auto &a, const auto &b) {
-            if (useFreq)
-                return (a.second > b.second);
-            else
-                return (a.first < b.first);
-    });
-    }
-    else{
-    sort(sortedWords.begin(), sortedWords.end(), [useFreq](const auto& a, const auto& b) {
-        if (a.second != b.second && useFreq) return a.second > b.second;
-        if (a.first.length() != b.first.length())
+    sort(sortedWords.begin(), sortedWords.end(), [useFreq, useBFS](const auto &a, const auto &b) {
+        if (useFreq && a.second != b.second)
+            return a.second > b.second;
+        if (useBFS && a.first.length() != b.first.length())
             return a.first.length() < b.first.length();
         return a.first < b.first;
     });
-    }
+
     for (int i = 0; i < min(numofsug, (int)sortedWords.size()); i++) {
           suggestionsVector.push_back(sortedWords[i].first);
     }
